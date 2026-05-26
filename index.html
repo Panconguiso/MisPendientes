@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mis Pendientes</title>
+  <meta name="theme-color" content="#0d0d0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pendientes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0f; --surface: #17171a; --surface-alt: #1f1f24;
+      --border: #2a2a2e; --border-input: #2e2e33;
+      --text: #f0ede6; --text-muted: #5a5855; --text-dim: #a09d96;
+      --accent: #e8e0d0; --accent-fg: #0d0d0f;
+      --success: #6b9f7f; --warning: #d4a574; --danger: #c97872;
+    }
+    body.theme-light {
+      --bg: #f5f0e8; --surface: #ede8df; --surface-alt: #e4ddd2;
+      --border: #d0c8bb; --border-input: #c8c0b3;
+      --text: #2a2420; --text-muted: #9a9088; --text-dim: #6a6058;
+      --accent: #5a4a3a; --accent-fg: #f5f0e8;
+      --success: #4a8060; --warning: #b07840; --danger: #a05850;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    /* ===== LOGIN SCREEN ===== */
+    #loginScreen {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .login-card {
+      width: 100%; max-width: 400px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 40px 32px 32px;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(232,224,208,0.04);
+      animation: popIn 0.4s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .login-logo {
+      font-family: 'Fraunces', serif; font-weight: 300;
+      font-size: 2.2rem; color: var(--text); text-align: center;
+      margin-bottom: 4px; letter-spacing: -0.02em;
+    }
+    .login-logo-dot {
+      display: inline-block; width: 7px; height: 7px;
+      background: var(--accent); border-radius: 50;
+      margin-left: 3px; vertical-align: middle; margin-bottom: 4px;
+    }
+    .login-sub {
+      text-align: center; color: var(--text-muted);
+      font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      margin-bottom: 28px; letter-spacing: 0.04em;
+    }
+    .login-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; color: var(--text-muted);
+      font-size: 0.75rem; font-family: 'DM Mono', monospace;
+    }
+    .login-divider::before, .login-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .btn-google {
+      width: 100%; padding: 13px; border-radius: 12px;
+      background: var(--surface-alt); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.9rem; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: all 0.22s cubic-bezier(0.34,1.2,0.64,1); margin-bottom: 16px;
+    }
+    /* === ANIMACIONES & AMBIENTE ZEN === */
+    @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes pulse   { 0%,100%{ transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); } 50%{ transform: scale(1.08); box-shadow: 0 6px 20px rgba(232,224,208,0.25); } }
+    @keyframes popIn   { 0%{ transform: scale(0.9); opacity:0; } 100%{ transform: scale(1); opacity:1; } }
+
+    * { transition: color 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.25s, opacity 0.2s, transform 0.2s; }
+
+    .btn-google:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(232,224,208,0.10); transform: translateY(-2px); }
+    .btn-google img { width: 18px; height: 18px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; margin-bottom: 6px; font-size: 0.8rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+    .form-input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border-input);
+      border-radius: 8px; padding: 10px 12px; color: var(--text);
+      font-size: 0.9rem; font-family: 'DM Sans', sans-serif; outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .btn-primary {
+      width: 100%; padding: 13px; border-radius: 12px;
+      background: var(--accent); color: var(--accent-fg); border: none;
+      font-size: 0.92rem; font-weight: 600; cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      margin-bottom: 10px; letter-spacing: 0.01em;
+      box-shadow: 0 2px 14px rgba(232,224,208,0.12);
+      transition: all 0.22s cubic-bezier(0.34,1.2,0.64,1);
+      position: relative; overflow: hidden;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(232,224,208,0.22); }
+    .btn-primary:active { transform: translateY(0); box-shadow: 0 1px 6px rgba(232,224,208,0.1); }
+    .btn-secondary-sm {
+      width: 100%; padding: 11px; border-radius: 12px;
+      background: transparent; color: var(--text-muted);
+      border: 1px dashed var(--border); font-size: 0.82rem;
+      cursor: pointer; font-family: 'DM Mono', monospace;
+      transition: all 0.22s; margin-bottom: 8px;
+    }
+    .btn-secondary-sm:hover { border-color: var(--accent); color: var(--text-dim); transform: translateY(-1px); }
+    .btn-link {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 0.78rem; cursor: pointer; font-family: 'DM Mono', monospace;
+      text-decoration: underline; width: 100%; text-align: center;
+      margin-top: 8px; padding: 4px;
+    }
+    .login-error {
+      color: var(--danger); font-size: 0.78rem;
+      font-family: 'DM Mono', monospace; margin-bottom: 10px;
+      text-align: center; min-height: 18px;
+    }
+    .login-tab-row {
+      display: flex; gap: 0; margin-bottom: 24px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 4px;
+    }
+    .login-tab {
+      flex: 1; padding: 10px 8px; border-radius: 9px; border: none;
+      background: transparent; color: var(--text-muted);
+      font-family: 'DM Mono', monospace; font-size: 0.78rem;
+      cursor: pointer; text-align: center;
+      transition: all 0.22s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .login-tab:hover { color: var(--text); }
+    .login-tab.active {
+      background: var(--accent); color: var(--accent-fg);
+      box-shadow: 0 2px 12px rgba(232,224,208,0.15);
+      font-weight: 600;
+    }
+    .login-tab.active:hover { color: var(--accent-fg); background: var(--accent); }
+
+    /* ===== USER BAR ===== */
+    #userBar {
+      display: none; background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; align-items: center; gap: 12px; justify-content: space-between;
+    }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent); color: var(--accent-fg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 600; overflow: hidden; flex-shrink: 0;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-name { font-size: 0.85rem; color: var(--text); font-weight: 500; }
+    .user-email { font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+    .btn-logout {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 7px; padding: 5px 12px;
+      font-size: 0.75rem; cursor: pointer; font-family: 'DM Mono', monospace;
+      transition: all 0.15s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); transform: translateY(-1px); }
+
+    /* User bar */
+    #userBar { display: none; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; }
+    .user-bar-inner { display: flex; align-items: center; justify-content: space-between; max-width: 600px; margin: 0 auto; }
+    .app-bar-title { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.2rem; color: var(--text); letter-spacing: -0.01em; }
+    .avatar-btn { background: none; border: none; cursor: pointer; padding: 0; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 600; overflow: hidden; border: 2px solid var(--border); transition: all 0.2s; }
+    .avatar-btn:hover .user-avatar { border-color: var(--accent); box-shadow: 0 0 12px rgba(232,224,208,0.2); transform: scale(1.05); }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ===== PROFILE SCREEN ===== */
+    .profile-backdrop { display:none; position:fixed; inset:0; z-index:2998; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); }
+    .profile-backdrop.open { display:block; }
+    .profile-screen {
+      position:fixed; top:0; right:0; bottom:0; z-index:2999; width:min(390px,100vw);
+      background:var(--surface); border-left:1px solid var(--border);
+      display:flex; flex-direction:column;
+      transform:translateX(100%); transition:transform 0.32s cubic-bezier(0.4,0,0.2,1); overflow:hidden;
+    }
+    .profile-screen.open { transform:translateX(0); }
+    .ps-topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 18px 0; flex-shrink:0; }
+    .ps-close { background:var(--surface-alt); border:1px solid var(--border); width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.82rem; color:var(--text-muted); transition:all 0.15s; }
+    .ps-close:hover { border-color:var(--accent); color:var(--accent); }
+    .ps-title { font-family:'Fraunces',serif; font-weight:300; font-size:1.1rem; color:var(--text); }
+    /* Identity hero */
+    .ps-identity { display:flex; flex-direction:column; align-items:center; padding:20px 20px 16px; flex-shrink:0; }
+    .ps-avatar-wrap { position:relative; margin-bottom:12px; cursor:pointer; }
+    .ps-avatar { width:86px; height:86px; border-radius:50%; background:var(--accent); color:var(--accent-fg); display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:600; overflow:hidden; border:3px solid var(--border); transition:border-color 0.3s, box-shadow 0.3s, transform 0.2s; }
+    .ps-avatar img { width:100%; height:100%; object-fit:cover; }
+    .ps-avatar-wrap:hover .ps-avatar { transform:scale(1.04); box-shadow:0 0 18px rgba(232,224,208,0.18); border-color:var(--accent); }
+    .ps-avatar-cam { position:absolute; bottom:2px; right:2px; width:26px; height:26px; border-radius:50%; background:var(--accent); color:var(--accent-fg); display:flex; align-items:center; justify-content:center; font-size:0.7rem; border:2px solid var(--surface); pointer-events:none; }
+    .ps-name-row { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:3px; cursor:pointer; padding:8px 16px; border-radius:10px; transition:background 0.18s; }
+    .ps-name-row:hover { background:rgba(232,224,208,0.07); }
+    .ps-name-row:hover .ps-edit-hint { opacity:1; }
+    .ps-user-name { font-size:1.1rem; font-weight:600; color:var(--text); background:none; border:none; outline:none; text-align:center; font-family:'DM Sans',sans-serif; cursor:pointer; border-bottom:1px dashed transparent; transition:border-color 0.2s; padding:0; min-width:60px; max-width:200px; caret-color:var(--accent); }
+    .ps-user-name:focus { border-bottom-color:var(--accent); cursor:text; }
+    .ps-edit-hint { font-size:0.72rem; color:var(--text-muted); opacity:0.4; transition:opacity 0.18s; pointer-events:none; }
+    .ps-user-email { font-size:0.7rem; color:var(--text-muted); font-family:'DM Mono',monospace; margin-bottom:14px; }
+    /* Stats strip */
+    .ps-stats-strip { display:flex; gap:8px; width:100%; }
+    .ps-stat-pill { flex:1; background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 8px; text-align:center; }
+    .ps-stat-pill-num { font-size:1.3rem; font-weight:600; color:var(--accent); font-family:'DM Mono',monospace; line-height:1; }
+    .ps-stat-pill-label { font-size:0.58rem; color:var(--text-muted); font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:0.06em; margin-top:4px; }
+    /* Body */
+    .ps-body { flex:1; overflow-y:auto; padding:4px 12px 32px; }
+    .ps-body::-webkit-scrollbar { width:3px; }
+    .ps-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    /* Sections */
+    .ps-section { margin-bottom:8px; }
+    .ps-section-label { font-size:0.6rem; font-family:'DM Mono',monospace; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; padding:10px 10px 5px; }
+    .ps-card { background:var(--surface-alt); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+    .ps-row { display:flex; align-items:center; gap:12px; padding:12px 14px; cursor:pointer; transition:background 0.15s; border:none; width:100%; background:transparent; text-align:left; }
+    .ps-row + .ps-row { border-top:1px solid var(--border); }
+    .ps-row:hover { background:rgba(232,224,208,0.05); }
+    .ps-row-icon { width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; flex-shrink:0; }
+    .ps-row-icon.green { background:rgba(107,159,127,0.15); }
+    .ps-row-icon.blue  { background:rgba(100,140,200,0.15); }
+    .ps-row-icon.orange{ background:rgba(212,165,116,0.15); }
+    .ps-row-icon.purple{ background:rgba(160,120,200,0.15); }
+    .ps-row-icon.red   { background:rgba(201,120,114,0.15); }
+    .ps-row-icon.gray  { background:rgba(160,155,150,0.12); }
+    .ps-row-body { flex:1; }
+    .ps-row-label { font-size:0.86rem; color:var(--text); font-weight:500; }
+    .ps-row-sub { font-size:0.68rem; color:var(--text-muted); font-family:'DM Mono',monospace; margin-top:2px; }
+    .ps-row-arrow { color:var(--text-muted); font-size:0.72rem; flex-shrink:0; }
+    .ps-row.danger .ps-row-label { color:var(--danger); }
+    .ps-row.danger:hover { background:rgba(201,120,114,0.07); }
+    /* Toggle */
+    .ps-toggle { position:relative; width:40px; height:22px; flex-shrink:0; }
+    .ps-toggle input { opacity:0; width:0; height:0; }
+    .ps-toggle-slider { position:absolute; top:0;left:0;right:0;bottom:0; background:var(--border); border-radius:22px; transition:0.25s; cursor:pointer; }
+    .ps-toggle-slider:before { content:''; position:absolute; width:16px; height:16px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.25s; }
+    .ps-toggle input:checked + .ps-toggle-slider { background:var(--accent); }
+    .ps-toggle input:checked + .ps-toggle-slider:before { transform:translateX(18px); }
+    /* Color palette */
+    .ps-color-row { display:flex; align-items:center; justify-content:center; gap:10px; padding:12px 14px 10px; flex-wrap:wrap; }
+    .ps-color-dot { width:28px; height:28px; border-radius:50%; cursor:pointer; border:2.5px solid transparent; transition:all 0.2s; flex-shrink:0; }
+    .ps-color-dot.selected { border-color:var(--text); transform:scale(1.18); box-shadow:0 0 10px rgba(255,255,255,0.15); }
+    .ps-color-dot:hover { transform:scale(1.1); }
+    /* Sub-panels */
+    .ps-subpanel { position:absolute; inset:0; background:var(--surface); transform:translateX(100%); transition:transform 0.28s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; z-index:10; }
+    .ps-subpanel.open { transform:translateX(0); }
+    .ps-subpanel-header { display:flex; align-items:center; gap:10px; padding:18px 16px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .ps-back { background:var(--surface-alt); border:1px solid var(--border); width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:var(--text-muted); transition:all 0.15s; }
+    .ps-back:hover { border-color:var(--accent); color:var(--accent); }
+    .ps-subpanel-body { flex:1; overflow-y:auto; padding:12px; }
+    /* Avatar picker */
+    .ps-avatar-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:14px; }
+    .ps-avatar-option { aspect-ratio:1; border-radius:50%; border:2.5px solid var(--border); background:var(--surface-alt); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:all 0.18s; }
+    .ps-avatar-option:hover { border-color:var(--accent); transform:scale(1.1); }
+    .ps-avatar-option.selected { border-color:var(--accent); box-shadow:0 0 12px rgba(232,224,208,0.2); }
+    .ps-gallery-btn { width:100%; padding:12px; border-radius:12px; background:transparent; border:1px dashed var(--border); color:var(--text-muted); font-family:'DM Mono',monospace; font-size:0.8rem; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .ps-gallery-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .ps-info-box { background:var(--surface-alt); border:1px solid var(--border); border-radius:10px; padding:11px 13px; font-size:0.75rem; color:var(--text-muted); font-family:'DM Mono',monospace; line-height:1.5; margin-bottom:12px; }
+
+    /* Stats modal */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stats-card { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+    .stats-card-num { font-size: 1.8rem; font-weight: 600; color: var(--accent); font-family: 'DM Mono', monospace; }
+    .stats-card-label { font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 4px; text-transform: uppercase; }
+
+    /* Trash modal */
+    .trash-item { display: flex; align-items: center; gap: 10px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+    .trash-item-text { flex: 1; font-size: 0.85rem; color: var(--text-muted); text-decoration: line-through; }
+    .trash-restore { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; cursor: pointer; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+    .trash-restore:hover { border-color: var(--success); color: var(--success); }
+    .tab-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px rgba(232,224,208,0.07); }
+    .filter-badge:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .checkbox:hover { border-color: var(--accent); box-shadow: 0 0 8px rgba(107,159,127,0.25); }
+    .subtask-checkbox:hover { border-color: var(--accent); }
+    .login-tab:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,224,208,0.07); }
+    .login-tab.active:hover { color: var(--accent-fg); background: var(--accent); }
+    .music-toggle-row:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(232,224,208,0.06); }
+    .stat-item:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(232,224,208,0.07); transform: translateY(-2px); }
+    .playlist-card:hover { box-shadow: 0 2px 16px rgba(232,224,208,0.06); }
+    .fab-main:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.08); box-shadow: 0 4px 18px rgba(232,224,208,0.12); }
+    .fab-option-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.1); }
+    .voice-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(232,224,208,0.15); }
+    .btn-new-playlist:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .pl-add-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .pl-item-remove:hover { color: var(--danger); transform: scale(1.2); }
+    .btn-modal-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(232,224,208,0.12); }
+    .btn-modal-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+    /* ===== MAIN APP ===== */
+    #appScreen { display: none; padding: 28px 16px 120px; }
+    .container { width: 100%; max-width: 600px; margin: 0 auto; }
+
+    .header { margin-bottom: 24px; text-align: center; }
+    .header-row { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 8px; justify-content: center; }
+    h1 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 2.2rem; color: var(--text); letter-spacing: -0.02em; }
+    .count-badge { font-family: 'DM Mono', monospace; font-size: 0.72rem; background: #ffffff12; color: var(--text-muted); border-radius: 8px; padding: 3px 10px; margin-bottom: 6px; }
+    .subtitle { color: var(--text-muted); font-size: 0.78rem; font-family: 'DM Mono', monospace; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+    .stat-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: default; }
+    .stat-item:hover { border-color: var(--accent); box-shadow: 0 2px 14px rgba(232,224,208,0.08); transform: translateY(-2px); }
+    .stat-num { font-size: 1.4rem; font-weight: 600; color: var(--accent); font-family: 'DM Mono', monospace; }
+    .stat-label { font-size: 0.62rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+    .quick-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); padding: 10px; border-radius: 10px; cursor: pointer; font-size: 0.78rem; font-family: 'DM Mono', monospace; transition: all 0.2s; text-align: center; }
+    .quick-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(232,224,208,0.08); transform: translateY(-2px); }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; justify-content: center; }
+    .tab-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-family: 'DM Mono', monospace; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(232,224,208,0.07); }
+    .tab-btn.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); box-shadow: 0 2px 12px rgba(232,224,208,0.12); }
+
+    .search-section { margin-bottom: 18px; }
+    .search-input { width: 100%; background: var(--surface); border: 1px solid var(--border-input); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.9rem; font-family: 'DM Sans', sans-serif; margin-bottom: 10px; outline: none; transition: border-color 0.15s; }
+    .search-input:focus { border-color: var(--accent); }
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-badge { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.72rem; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+    .filter-badge:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .filter-badge.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+    .task-row { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.22s cubic-bezier(0.34,1.2,0.64,1); }
+    .task-row:hover { border-color: var(--accent); background: var(--surface-alt); box-shadow: 0 4px 20px rgba(232,224,208,0.09); transform: translateY(-2px); }
+    .task-row.done { opacity: 0.45; border-color: transparent; }
+    .checkbox { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; margin-top: 2px; background: transparent; border: 2px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; font-size: 0.65rem; font-weight: 700; color: var(--accent-fg); }
+    .checkbox:hover { border-color: var(--accent); box-shadow: 0 0 8px rgba(107,159,127,0.3); }
+    .checkbox.checked { background: var(--success); border-color: var(--success); box-shadow: 0 0 10px rgba(107,159,127,0.35); }
+    .task-content { flex: 1; min-width: 0; }
+    .task-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .task-text { color: var(--text); font-size: 0.92rem; line-height: 1.4; word-break: break-word; margin: 0; }
+    .task-text.done-text { text-decoration: line-through; color: var(--text-muted); }
+    .task-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; line-height: 1.3; }
+    .task-badges { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+    .badge { font-size: 0.65rem; font-family: 'DM Mono', monospace; border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+    .badge-priority { background: #3a3a3e; color: var(--text-dim); }
+    .badge-category { background: #2a3a2e; color: var(--success); }
+    .badge-date { background: #3a3a2e; color: var(--warning); }
+    .badge-overdue { background: #3a2a2a; color: var(--danger); }
+    .badge-tag { background: #2e3a3a; color: var(--text-dim); }
+    .subtask-list { margin-top: 10px; padding-left: 10px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+    .subtask-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-dim); }
+    .subtask-checkbox { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; transition: all 0.15s; }
+    .subtask-checkbox:hover { border-color: var(--accent); }
+    .subtask-checkbox.checked { background: var(--success); border-color: var(--success); color: white; }
+    .subtask-text.done { text-decoration: line-through; opacity: 0.5; }
+    .task-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .btn-icon { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.8rem; padding: 4px 6px; border-radius: 4px; transition: all 0.15s; }
+    .btn-icon:hover { color: var(--accent); background: rgba(232,224,208,0.07); transform: scale(1.15); }
+    .empty { text-align: center; color: var(--text-muted); padding: 48px 0; font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 300; }
+
+    /* Music toggle */
+    .music-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 16px; margin-bottom: 16px;
+      transition: all 0.2s; cursor: default;
+    }
+    .music-toggle-row:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(232,224,208,0.07); }
+    .music-label { font-size: 0.82rem; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; cursor: pointer; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--border); border-radius: 24px; transition: 0.3s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute; width: 18px; height: 18px;
+      left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s;
+    }
+    input:checked + .toggle-slider { background: var(--accent); }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.72); z-index: 2000; justify-content: center; align-items: flex-start; padding: 20px 16px; overflow-y: auto; animation: fadeIn 0.2s ease; backdrop-filter: blur(2px); }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; max-width: 500px; width: 100%; margin-top: 40px; animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-header h2 { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 300; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; }
+    .form-group { margin-bottom: 14px; }
+    .form-select, .form-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border-input); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 0.9rem; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+    .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea { resize: vertical; min-height: 70px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .form-actions button { flex: 1; }
+    .btn-modal-primary { background: var(--accent); color: var(--accent-fg); border: none; border-radius: 8px; padding: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.18s; }
+    .btn-modal-primary:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,224,208,0.14); }
+    .btn-modal-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 0.9rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.18s; }
+    .btn-modal-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+    /* FAB */
+    .fab-wrapper { position: fixed; bottom: 20px; right: 20px; z-index: 1100; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .fab-options { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; opacity: 0; transform: translateY(10px); transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+    .fab-options.open { pointer-events: all; opacity: 1; transform: translateY(0); }
+    .fab-option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .fab-option-label { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.15s; }
+    .fab-option-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface-alt); color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.35); transition: all 0.2s; }
+    .fab-option-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.1); box-shadow: 0 4px 14px rgba(232,224,208,0.12); }
+    .fab-option:hover .fab-option-label { border-color: var(--accent); color: var(--accent); }
+    .fab-main { width: 50px; height: 50px; border-radius: 50%; background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-dim); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.45); transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+    .fab-main:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.07); box-shadow: 0 6px 20px rgba(232,224,208,0.14); }
+    .fab-main.open { transform: rotate(45deg) scale(1.05); border-color: var(--accent); color: var(--accent); box-shadow: 0 6px 20px rgba(232,224,208,0.14); }
+
+    /* Voice */
+    .voice-wrapper { position: fixed; bottom: 80px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .voice-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-dim); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.25s; }
+    .voice-btn:hover { border-color: var(--accent); color: var(--accent); transform: scale(1.07); box-shadow: 0 6px 20px rgba(232,224,208,0.12); }
+    .voice-btn.recording { animation: pulse 1.4s ease-in-out infinite; border-color: var(--accent); color: var(--accent); background: var(--surface); }
+    .voice-label { font-size: 0.58rem; font-family: 'DM Mono', monospace; color: var(--text-muted); opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+    .voice-label.visible { opacity: 1; }
+    @keyframes pulse { 0%,100%{ transform:scale(1); box-shadow:0 4px 12px rgba(0,0,0,0.35); } 50%{ transform:scale(1.09); box-shadow:0 6px 22px rgba(232,224,208,0.22); } }
+
+    /* Playlist section */
+    .playlist-section { display: none; }
+    .playlist-section.visible { display: block; }
+    .playlist-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .playlist-header-row h3 { font-family: 'Fraunces', serif; font-weight: 300; font-size: 1.1rem; color: var(--text-dim); }
+    .playlist-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .playlist-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.2s; }
+    .playlist-card:hover { border-color: var(--accent); box-shadow: 0 3px 16px rgba(232,224,208,0.07); }
+    .playlist-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; cursor: pointer; gap: 10px; }
+    .playlist-card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .playlist-name { font-size: 0.92rem; font-weight: 500; color: var(--text); }
+    .playlist-meta { font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+    .playlist-items { display: none; border-top: 1px solid var(--border); padding: 8px; }
+    .playlist-items.open { display: block; }
+    .pl-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
+    .pl-item-text { flex: 1; font-size: 0.85rem; color: var(--text); }
+    .pl-item-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px 4px; }
+    .pl-add-row { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .pl-add-select { flex: 1; background: var(--bg); border: 1px solid var(--border-input); border-radius: 6px; padding: 6px 8px; color: var(--text); font-size: 0.8rem; font-family: 'DM Sans', sans-serif; outline: none; }
+    .pl-add-btn { background: var(--accent); color: var(--accent-fg); border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-new-playlist { background: var(--surface); border: 1px dashed var(--border); color: var(--text-muted); border-radius: 10px; padding: 12px; width: 100%; font-size: 0.82rem; font-family: 'DM Mono', monospace; cursor: pointer; text-align: center; transition: all 0.18s; }
+    .btn-new-playlist:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+
+    /* Password toggle */
+    .password-wrapper { position: relative; }
+    .password-wrapper .form-input { padding-right: 42px; }
+    .btn-eye {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--text-muted);
+      font-size: 1rem; padding: 4px; line-height: 1; transition: color 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-eye:hover { color: var(--accent); }
+
+    /* ===== DESKTOP MODE ===== */
+    body.mode-desktop #appScreen { padding: 0; }
+    body.mode-desktop .container { max-width: 100%; padding: 0; }
+    body.mode-desktop #userBar { display: none !important; }
+
+    body.mode-desktop .desktop-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+    body.mode-desktop .desktop-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    body.mode-desktop .desktop-main {
+      padding: 32px 40px 80px;
+      max-width: 860px;
+    }
+    body.mode-desktop .sidebar-logo {
+      font-family: 'Fraunces', serif; font-weight: 300;
+      font-size: 1.3rem; color: var(--text); letter-spacing: -0.02em;
+      margin-bottom: 6px; padding: 0 8px;
+    }
+    body.mode-desktop .sidebar-sub {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem;
+      color: var(--text-muted); padding: 0 8px; margin-bottom: 18px;
+    }
+    body.mode-desktop .sidebar-section-label {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em; padding: 0 8px; margin: 10px 0 4px;
+    }
+    body.mode-desktop .sidebar-btn {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      background: transparent; border: none; color: var(--text-dim);
+      font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; text-align: left; transition: all 0.15s;
+    }
+    body.mode-desktop .sidebar-btn:hover { background: var(--surface-alt); color: var(--accent); }
+    body.mode-desktop .sidebar-btn.active { background: var(--accent); color: var(--accent-fg); }
+    body.mode-desktop .sidebar-btn .sidebar-icon { font-size: 1rem; width: 20px; text-align: center; }
+    body.mode-desktop .sidebar-divider { height: 1px; background: var(--border); margin: 8px 0; }
+    body.mode-desktop .sidebar-bottom { margin-top: auto; }
+    body.mode-desktop .sidebar-avatar-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 8px; border-top: 1px solid var(--border); margin-top: 12px;
+      cursor: pointer; border-radius: 10px; transition: all 0.15s;
+    }
+    body.mode-desktop .sidebar-avatar-row:hover { background: var(--surface-alt); }
+    body.mode-desktop .sidebar-user-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    body.mode-desktop .sidebar-user-email { font-size: 0.68rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+    /* hide mobile-only elements in desktop mode */
+    body.mode-desktop .fab-wrapper,
+    body.mode-desktop .voice-wrapper,
+    body.mode-desktop .tabs,
+    body.mode-desktop .quick-actions,
+    body.mode-desktop .header { display: none !important; }
+
+    /* desktop mode: show desktop header instead */
+    body.mode-desktop .desktop-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    body.mode-desktop .desktop-header h1 {
+      font-family: 'Fraunces', serif; font-weight: 300;
+      font-size: 2rem; color: var(--text); letter-spacing: -0.02em;
+    }
+    body.mode-desktop .desktop-header-actions { display: flex; gap: 8px; }
+    body.mode-desktop .desktop-header-actions button {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-dim); border-radius: 8px; padding: 8px 14px;
+      font-size: 0.78rem; font-family: 'DM Mono', monospace; cursor: pointer;
+      transition: all 0.15s;
+    }
+    body.mode-desktop .desktop-header-actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* show elements only in desktop mode */
+    .desktop-only { display: none; }
+    body.mode-desktop .desktop-only { display: flex; }
+    body.mode-desktop .desktop-layout-wrapper { display: contents; }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.9rem; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Mis pendientes<span class="login-logo-dot"></span></div>
+    <div class="login-sub">bloc de notas personal</div>
+
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+      Continuar con Google
+    </button>
+
+    <div class="login-divider">o</div>
+
+    <div class="login-tab-row">
+      <div class="login-tab active" id="tabLogin" onclick="switchLoginTab('login')">Iniciar sesión</div>
+      <div class="login-tab" id="tabRegister" onclick="switchLoginTab('register')">Registrarse</div>
+    </div>
+
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="password-wrapper">
+          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" />
+          <button type="button" class="btn-eye" onclick="togglePasswordVisibility('loginPassword', this)" title="Ver contraseña">👁</button>
+        </div>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button class="btn-primary" onclick="loginWithEmail()">Entrar</button>
+      <button class="btn-link" onclick="resetPassword()">Olvidé mi contraseña</button>
+    </div>
+
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-input" id="regName" placeholder="Tu nombre" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="regEmail" placeholder="tu@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="password-wrapper">
+          <input type="password" class="form-input" id="regPassword" placeholder="Mínimo 6 caracteres" />
+          <button type="button" class="btn-eye" onclick="togglePasswordVisibility('regPassword', this)" title="Ver contraseña">👁</button>
+        </div>
+      </div>
+      <div class="login-error" id="registerError"></div>
+      <button class="btn-primary" onclick="registerWithEmail()">Crear cuenta</button>
+    </div>
+
+    <div class="login-divider">o</div>
+    <button class="btn-secondary-sm" onclick="continueWithoutLogin()">Continuar sin cuenta</button>
+  </div>
+</div>
+
+<!-- ===== USER BAR ===== -->
+<div id="userBar">
+  <div class="user-bar-inner">
+    <div class="app-bar-title">Mis pendientes</div>
+    <button class="avatar-btn" id="avatarBtn" onclick="openProfileScreen()">
+      <div class="user-avatar" id="userAvatar"></div>
+    </button>
+  </div>
+</div>
+
+<!-- ===== PROFILE SCREEN ===== -->
+<div class="profile-backdrop" id="profileBackdrop" onclick="closeProfileScreen()"></div>
+<div class="profile-screen" id="profileScreen">
+
+  <div class="ps-topbar">
+    <span class="ps-title">Mi perfil</span>
+    <button class="ps-close" onclick="closeProfileScreen()">✕</button>
+  </div>
+
+  <div class="ps-identity">
+    <div class="ps-avatar-wrap" onclick="openAvatarPicker()">
+      <div class="ps-avatar" id="psAvatar"></div>
+      <div class="ps-avatar-cam">📷</div>
+    </div>
+    <div class="ps-name-row" onclick="document.getElementById('psName').focus()">
+      <input class="ps-user-name" id="psName" value="Usuario"
+        onblur="saveDisplayName(this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()" />
+      <span class="ps-edit-hint">✏️</span>
+    </div>
+    <div class="ps-user-email" id="psEmail"></div>
+    <div class="ps-stats-strip">
+      <div class="ps-stat-pill">
+        <div class="ps-stat-pill-num" id="psStatDone">0</div>
+        <div class="ps-stat-pill-label">Hechas</div>
+      </div>
+      <div class="ps-stat-pill">
+        <div class="ps-stat-pill-num" id="psStatPending">0</div>
+        <div class="ps-stat-pill-label">Pendientes</div>
+      </div>
+      <div class="ps-stat-pill">
+        <div class="ps-stat-pill-num" id="psStatStreak">0🔥</div>
+        <div class="ps-stat-pill-label">Días activo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ps-body">
+
+    <div class="ps-section">
+      <div class="ps-section-label">Personalización</div>
+      <div class="ps-card">
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon purple">🌗</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label" id="psThemeLabel">Tema oscuro</div>
+            <div class="ps-row-sub">Claro / Oscuro</div>
+          </div>
+          <label class="ps-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="psThemeToggle" onchange="toggleThemeFromProfile(this.checked)" />
+            <span class="ps-toggle-slider"></span>
+          </label>
+        </div>
+        <button class="ps-row" onclick="openAppearancePanel()">
+          <div class="ps-row-icon orange">🎨</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label">Color de acento</div>
+            <div class="ps-row-sub" id="psAccentLabel">Crema</div>
+          </div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="ps-section">
+      <div class="ps-section-label">Notificaciones</div>
+      <div class="ps-card">
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon orange">🔔</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label">Notificaciones</div>
+            <div class="ps-row-sub" id="psNotifStatus">Desactivadas</div>
+          </div>
+          <label class="ps-toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="psNotifToggle" onchange="toggleNotifFromProfile(this.checked)" />
+            <span class="ps-toggle-slider"></span>
+          </label>
+        </div>
+        <button class="ps-row" onclick="openNotifSettings()">
+          <div class="ps-row-icon green">🔧</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label">Ajustes de notificaciones</div>
+            <div class="ps-row-sub">Horarios y tipos de aviso</div>
+          </div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="ps-section">
+      <div class="ps-section-label">Cuenta</div>
+      <div class="ps-card">
+        <button class="ps-row" onclick="openSettings();closeProfileScreen()">
+          <div class="ps-row-icon gray">⚙️</div>
+          <div class="ps-row-body"><div class="ps-row-label">Configuración</div></div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+        <button class="ps-row" onclick="showStatsModal();closeProfileScreen()">
+          <div class="ps-row-icon green">📊</div>
+          <div class="ps-row-body"><div class="ps-row-label">Estadísticas</div></div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+        <button class="ps-row" onclick="openTrash();closeProfileScreen()">
+          <div class="ps-row-icon gray">🗑️</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label">Papelera</div>
+            <div class="ps-row-sub" id="psTrashSub">Vacía</div>
+          </div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+        <button class="ps-row" onclick="switchAccount()">
+          <div class="ps-row-icon blue">🔄</div>
+          <div class="ps-row-body"><div class="ps-row-label">Cambiar de cuenta</div></div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+        <button class="ps-row danger" onclick="logout()">
+          <div class="ps-row-icon red">🌙</div>
+          <div class="ps-row-body">
+            <div class="ps-row-label">Cerrar sesión</div>
+            <div class="ps-row-sub">hasta mañana</div>
+          </div>
+          <span class="ps-row-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:14px 0 4px;font-size:0.65rem;color:var(--text-muted);font-family:'DM Mono',monospace">
+      Mis Pendientes v9 · Firebase Auth
+    </div>
+  </div>
+
+  <!-- Sub-panel: Avatar Picker -->
+  <div class="ps-subpanel" id="psAvatarPanel">
+    <div class="ps-subpanel-header">
+      <button class="ps-back" onclick="closeAvatarPicker()">‹</button>
+      <span class="ps-title">Cambiar foto</span>
+    </div>
+    <div class="ps-subpanel-body">
+      <div class="ps-section-label" style="padding-left:2px">Avatares</div>
+      <div class="ps-avatar-grid" id="psAvatarGrid"></div>
+      <button class="ps-gallery-btn" onclick="document.getElementById('psFileInput').click()">
+        🖼️ Elegir desde galería
+      </button>
+      <input type="file" id="psFileInput" accept="image/*" style="display:none" onchange="handleGalleryImage(this)" />
+    </div>
+  </div>
+
+  <!-- Sub-panel: Appearance -->
+  <div class="ps-subpanel" id="psAppearancePanel">
+    <div class="ps-subpanel-header">
+      <button class="ps-back" onclick="closeAppearancePanel()">‹</button>
+      <span class="ps-title">Color de acento</span>
+    </div>
+    <div class="ps-subpanel-body">
+      <div class="ps-info-box">El color se aplica a botones y elementos activos de toda la app.</div>
+      <div class="ps-card">
+        <div class="ps-color-row" id="psColorPalette"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-panel: Notif Settings -->
+  <div class="ps-subpanel" id="psNotifPanel">
+    <div class="ps-subpanel-header">
+      <button class="ps-back" onclick="closeNotifSettings()">‹</button>
+      <span class="ps-title">Notificaciones</span>
+    </div>
+    <div class="ps-subpanel-body">
+      <div class="ps-info-box">Necesitás dar permiso en el navegador para recibir notificaciones.</div>
+      <div class="ps-section-label" style="padding-left:2px">Tipos de aviso</div>
+      <div class="ps-card" style="margin-bottom:10px">
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon orange">⏰</div>
+          <div class="ps-row-body"><div class="ps-row-label">Tareas vencidas</div></div>
+          <label class="ps-toggle"><input type="checkbox" id="notifOverdue" onchange="saveNotifSettings()" /><span class="ps-toggle-slider"></span></label>
+        </div>
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon blue">📅</div>
+          <div class="ps-row-body"><div class="ps-row-label">Recordatorio diario</div></div>
+          <label class="ps-toggle"><input type="checkbox" id="notifDaily" onchange="saveNotifSettings()" /><span class="ps-toggle-slider"></span></label>
+        </div>
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon red">⚡</div>
+          <div class="ps-row-body"><div class="ps-row-label">Alta prioridad</div></div>
+          <label class="ps-toggle"><input type="checkbox" id="notifHighPriority" onchange="saveNotifSettings()" /><span class="ps-toggle-slider"></span></label>
+        </div>
+      </div>
+      <div class="ps-section-label" style="padding-left:2px">Horario</div>
+      <div class="ps-card">
+        <div class="ps-row" style="cursor:default">
+          <div class="ps-row-icon green">🕐</div>
+          <div class="ps-row-body"><div class="ps-row-label">Hora del recordatorio</div></div>
+          <input type="time" id="notifTime" value="09:00" onchange="saveNotifSettings()"
+            style="background:var(--bg);border:1px solid var(--border-input);border-radius:7px;padding:5px 8px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;width:86px;text-align:center" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div id="appScreen">
+  <!-- DESKTOP SIDEBAR (visible only in desktop mode) -->
+  <div class="desktop-layout desktop-only" id="desktopLayout">
+    <div class="desktop-sidebar">
+      <div class="sidebar-logo">Mis pendientes</div>
+      <div class="sidebar-sub">bloc de notas personal</div>
+
+      <div class="sidebar-section-label">Vistas</div>
+      <button class="sidebar-btn active" id="sb-all" onclick="setView('all',this);syncSidebar(this)">
+        <span class="sidebar-icon">📋</span> Todas
+      </button>
+      <button class="sidebar-btn" id="sb-pending" onclick="setView('pending',this);syncSidebar(this)">
+        <span class="sidebar-icon">⏳</span> Pendientes
+      </button>
+      <button class="sidebar-btn" id="sb-completed" onclick="setView('completed',this);syncSidebar(this)">
+        <span class="sidebar-icon">✅</span> Completadas
+      </button>
+      <button class="sidebar-btn" id="sb-overdue" onclick="setView('overdue',this);syncSidebar(this)">
+        <span class="sidebar-icon">🔴</span> Vencidas
+      </button>
+      <button class="sidebar-btn" id="sb-today" onclick="setView('today',this);syncSidebar(this)">
+        <span class="sidebar-icon">📅</span> Hoy
+      </button>
+      <button class="sidebar-btn" id="sb-playlists" onclick="setView('playlists',this);syncSidebar(this)">
+        <span class="sidebar-icon">🎵</span> Playlists
+      </button>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">Acciones</div>
+      <button class="sidebar-btn" onclick="openAddTask()"><span class="sidebar-icon">➕</span> Nueva tarea</button>
+      <button class="sidebar-btn" onclick="exportData()"><span class="sidebar-icon">📥</span> Exportar</button>
+      <button class="sidebar-btn" onclick="importData()"><span class="sidebar-icon">📤</span> Importar</button>
+      <button class="sidebar-btn" onclick="openSettings()"><span class="sidebar-icon">⚙️</span> Configuración</button>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-avatar-row" onclick="toggleProfileMenu()">
+          <div class="user-avatar" id="sidebarAvatar" style="width:34px;height:34px;font-size:0.85rem;flex-shrink:0"></div>
+          <div>
+            <div class="sidebar-user-name" id="sidebarName">Usuario</div>
+            <div class="sidebar-user-email" id="sidebarEmail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP MAIN AREA -->
+    <div class="desktop-main">
+      <div class="desktop-header">
+        <h1 id="desktopViewTitle">Todas las tareas</h1>
+        <div class="desktop-header-actions">
+          <button onclick="openAddTask()">➕ Nueva tarea</button>
+          <button onclick="openQuickCreate('note')">📝 Nota rápida</button>
+          <button onclick="toggleVoice()">🎤 Voz</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" style="margin-bottom:24px">
+        <div class="stat-item"><div class="stat-num" id="statTotal2">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-item"><div class="stat-num" id="statPending2">0</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat-item"><div class="stat-num" id="statCompleted2">0</div><div class="stat-label">Hechas</div></div>
+        <div class="stat-item"><div class="stat-num" id="statOverdue2">0</div><div class="stat-label">Vencidas</div></div>
+      </div>
+
+      <!-- Search & filters -->
+      <div class="search-section">
+        <input type="text" class="search-input" id="searchInput2" placeholder="Buscar tareas..." oninput="searchQuery=this.value.toLowerCase();document.getElementById('searchInput').value=this.value;renderTasks()">
+        <div class="filter-row">
+          <div class="filter-badge active" onclick="filterByPriority('all',this)">Todas</div>
+          <div class="filter-badge" onclick="filterByPriority('high',this)">Alta</div>
+          <div class="filter-badge" onclick="filterByPriority('medium',this)">Media</div>
+          <div class="filter-badge" onclick="filterByPriority('low',this)">Baja</div>
+        </div>
+      </div>
+
+      <div class="task-list" id="taskListDesktop"></div>
+      <div class="playlist-section" id="playlistSectionDesktop">
+        <div class="playlist-header-row"><h3>Mis Playlists</h3></div>
+        <div class="playlist-grid" id="playlistGridDesktop"></div>
+        <button class="btn-new-playlist" onclick="openNewPlaylistModal()">＋ Nueva playlist</button>
+      </div>
+      <button class="btn-modal-secondary" id="clearCompletedBtn2" style="display:none;margin-top:20px;width:100%;padding:8px" onclick="clearCompleted()">🗑 Limpiar completadas</button>
+    </div>
+  </div>
+
+  <!-- MOBILE / APP layout (original) -->
+  <div class="container" id="mobileLayout">
+    <div class="header">
+      <div class="header-row">
+        <h1>Mis pendientes</h1>
+        <span class="count-badge" id="countBadge" style="display:none"></span>
+      </div>
+      <p class="subtitle">bloc de notas personal</p>
+    </div>
+
+    <!-- Music toggle -->
+    <div class="music-toggle-row">
+      <span class="music-label">🎵 Música lofi</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="musicToggle" onchange="toggleMusic()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <audio id="bgMusic" loop src="mondamusic-lofi-lofi-girl-lofi-chill-512853.mp3"></audio>
+
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-item"><div class="stat-num" id="statPending">0</div><div class="stat-label">Pendientes</div></div>
+      <div class="stat-item"><div class="stat-num" id="statCompleted">0</div><div class="stat-label">Hechas</div></div>
+      <div class="stat-item"><div class="stat-num" id="statOverdue">0</div><div class="stat-label">Vencidas</div></div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="quick-btn" onclick="openAddTask()">➕ Nueva</button>
+      <button class="quick-btn" onclick="exportData()">📥 Exportar</button>
+      <button class="quick-btn" onclick="importData()">📤 Importar</button>
+      <button class="quick-btn" onclick="openSettings()">⚙️ Config</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setView('all',this)">Todas</button>
+      <button class="tab-btn" onclick="setView('pending',this)">Pendientes</button>
+      <button class="tab-btn" onclick="setView('completed',this)">Completadas</button>
+      <button class="tab-btn" onclick="setView('overdue',this)">Vencidas</button>
+      <button class="tab-btn" onclick="setView('today',this)">Hoy</button>
+      <button class="tab-btn" onclick="setView('playlists',this)">🎵 Playlists</button>
+    </div>
+
+    <div class="search-section">
+      <input type="text" class="search-input" id="searchInput" placeholder="Buscar tareas..." oninput="updateSearch()">
+      <div class="filter-row">
+        <div class="filter-badge active" onclick="filterByPriority('all',this)">Todas</div>
+        <div class="filter-badge" onclick="filterByPriority('high',this)">Alta</div>
+        <div class="filter-badge" onclick="filterByPriority('medium',this)">Media</div>
+        <div class="filter-badge" onclick="filterByPriority('low',this)">Baja</div>
+      </div>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+
+    <div class="playlist-section" id="playlistSection">
+      <div class="playlist-header-row">
+        <h3>Mis Playlists</h3>
+      </div>
+      <div class="playlist-grid" id="playlistGrid"></div>
+      <button class="btn-new-playlist" onclick="openNewPlaylistModal()">＋ Nueva playlist</button>
+    </div>
+
+    <button class="btn-modal-secondary" id="clearCompletedBtn" style="display:none;margin-top:20px;width:100%;padding:8px" onclick="clearCompleted()">Limpiar completadas</button>
+  </div><!-- end mobileLayout -->
+</div><!-- end appScreen -->
+
+<!-- FAB -->
+<div class="fab-wrapper" id="fabWrapper" style="display:none">
+  <div class="fab-options" id="fabOptions">
+    <div class="fab-option" onclick="openQuickCreate('note')">
+      <span class="fab-option-label">Nota rápida</span>
+      <button class="fab-option-btn">📝</button>
+    </div>
+    <div class="fab-option" onclick="openQuickCreate('task')">
+      <span class="fab-option-label">Nueva tarea</span>
+      <button class="fab-option-btn">✅</button>
+    </div>
+  </div>
+  <button class="fab-main" id="fabMain" onclick="toggleFab()">＋</button>
+</div>
+
+<!-- Voice -->
+<div class="voice-wrapper" id="voiceWrapper" style="display:none">
+  <span class="voice-label" id="voiceLabel">escuchando...</span>
+  <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+</div>
+
+<!-- Task Modal -->
+<div class="modal" id="taskModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nueva tarea</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="taskTitle" placeholder="¿Qué necesitas hacer?" /></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="taskDesc" placeholder="Detalles..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoría</label>
+        <select class="form-select" id="taskCategory">
+          <option value="trabajo">Trabajo</option><option value="personal">Personal</option>
+          <option value="salud">Salud</option><option value="compras">Compras</option><option value="otros">Otros</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Prioridad</label>
+        <select class="form-select" id="taskPriority">
+          <option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Vence</label><input type="date" class="form-input" id="taskDate" /></div>
+    <div class="form-group"><label class="form-label">Etiquetas (separadas por comas)</label><input type="text" class="form-input" id="taskTags" placeholder="importante, urgente" /></div>
+    <div class="form-group"><label class="form-label">Subtareas</label><div id="subtaskContainer"></div><button type="button" class="btn-modal-secondary" onclick="addSubtaskInput()" style="margin-top:8px;width:100%;padding:8px">+ Agregar subtarea</button></div>
+    <div class="form-actions">
+      <button class="btn-modal-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-modal-primary" onclick="saveTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Create Modal -->
+<div class="modal" id="quickModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="quickModalTitle">Crear</h2><button class="modal-close" onclick="closeQuickModal()">✕</button></div>
+    <div class="form-group"><label class="form-label" id="quickLabel">Texto</label><textarea class="form-textarea" id="quickText" placeholder="Escribe aquí..." style="min-height:90px"></textarea></div>
+    <div id="quickExtra" style="display:none">
+      <div class="form-row" style="margin-bottom:14px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Prioridad</label><select class="form-select" id="quickPriority"><option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option></select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Vence</label><input type="date" class="form-input" id="quickDate" /></div>
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn-modal-secondary" onclick="closeQuickModal()">Cancelar</button><button class="btn-modal-primary" onclick="saveQuickItem()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- Playlist Modal -->
+<div class="modal" id="playlistModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2 id="playlistModalTitle">Nueva playlist</h2><button class="modal-close" onclick="closePlaylistModal()">✕</button></div>
+    <div class="form-group"><label class="form-label">Emoji</label><input type="text" class="form-input" id="playlistEmoji" placeholder="🎯" maxlength="2" style="width:80px" /></div>
+    <div class="form-group"><label class="form-label">Nombre</label><input type="text" class="form-input" id="playlistName" placeholder="Ej: Proyecto casa" /></div>
+    <div class="form-actions"><button class="btn-modal-secondary" onclick="closePlaylistModal()">Cancelar</button><button class="btn-modal-primary" onclick="savePlaylist()">Crear</button></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Configuración</h2><button class="modal-close" onclick="closeSettings()">✕</button></div>
+    <div class="form-group"><label class="form-label">Tema</label>
+      <select class="form-select" id="themeSelect" onchange="applyTheme(this.value)">
+        <option value="dark">Oscuro</option><option value="light">Claro</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Modo de vista</label>
+      <select class="form-select" id="layoutSelect" onchange="applyLayout(this.value)">
+        <option value="app">📱 App (móvil)</option>
+        <option value="desktop">🖥️ Escritorio</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-top:4px">
+      <label class="form-label">Música lofi de fondo</label>
+      <div class="music-toggle-row" style="margin-bottom:0">
+        <span class="music-label">🎵 Ambiente sonoro</span>
+        <label class="ps-toggle">
+          <input type="checkbox" id="musicToggleDesktop" onchange="toggleMusicFromSettings(this.checked)" />
+          <span class="ps-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <button class="btn-modal-primary" onclick="closeSettings()" style="width:100%">
+        Aplicar cambios
+      </button>
+    </div>
+    <p style="font-size:0.68rem;color:var(--text-muted);margin-top:14px;text-align:center;font-family:'DM Mono',monospace">Mis Pendientes v10 · Firebase Auth</p>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA9USoinJqDuJR4bczQFG6q8FMDxQLIT-I",
+    authDomain: "mis-pendientes-93e9a.firebaseapp.com",
+    projectId: "mis-pendientes-93e9a",
+    storageBucket: "mis-pendientes-93e9a.firebasestorage.app",
+    messagingSenderId: "872955811886",
+    appId: "1:872955811886:web:0137da9b52310c326967bf"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Expose to window
+  window._auth = auth;
+  window._provider = provider;
+  window._signInWithPopup = signInWithPopup;
+  window._signInWithEmail = signInWithEmailAndPassword;
+  window._createUser = createUserWithEmailAndPassword;
+  window._resetPassword = sendPasswordResetEmail;
+  window._signOut = signOut;
+  window._updateProfile = updateProfile;
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      showApp(user);
+    }
+  });
+</script>
+
+<script>
+  // ===== AUTH =====
+  function showLoginError(id, msg) { document.getElementById(id).textContent = msg; }
+
+  function switchLoginTab(tab) {
+    document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+    document.getElementById('tabRegister').classList.toggle('active', tab==='register');
+    document.getElementById('loginForm').style.display = tab==='login' ? '' : 'none';
+    document.getElementById('registerForm').style.display = tab==='register' ? '' : 'none';
+  }
+
+  async function loginWithGoogle() {
+    try {
+      const result = await window._signInWithPopup(window._auth, window._provider);
+      showApp(result.user);
+    } catch(e) {
+      if (e.code !== 'auth/popup-closed-by-user') {
+        showLoginError('loginError', 'Error al iniciar con Google. Intentá de nuevo.');
+      }
+    }
+  }
+  async function loginWithEmail() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showLoginError('loginError', 'Completá todos los campos.'); return; }
+    try {
+      const result = await window._signInWithEmail(window._auth, email, password);
+      showApp(result.user);
+    } catch(e) {
+      const msgs = { 'auth/user-not-found': 'No existe esa cuenta.', 'auth/wrong-password': 'Contraseña incorrecta.', 'auth/invalid-email': 'Email inválido.' };
+      showLoginError('loginError', msgs[e.code] || 'Error al iniciar sesión.');
+    }
+  }
+
+  async function registerWithEmail() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    if (!name || !email || !password) { showLoginError('registerError', 'Completá todos los campos.'); return; }
+    if (password.length < 6) { showLoginError('registerError', 'La contraseña debe tener al menos 6 caracteres.'); return; }
+    try {
+      const result = await window._createUser(window._auth, email, password);
+      await window._updateProfile(result.user, { displayName: name });
+      showApp(result.user);
+    } catch(e) {
+      const msgs = { 'auth/email-already-in-use': 'Ese email ya está registrado.', 'auth/invalid-email': 'Email inválido.' };
+      showLoginError('registerError', msgs[e.code] || 'Error al registrarse.');
+    }
+  }
+
+  async function resetPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showLoginError('loginError', 'Ingresá tu email primero.'); return; }
+    try {
+      await window._resetPassword(window._auth, email);
+      showLoginError('loginError', '✓ Te enviamos un email para resetear tu contraseña.');
+    } catch(e) {
+      showLoginError('loginError', 'No encontramos esa cuenta.');
+    }
+  }
+
+  function continueWithoutLogin() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('fabWrapper').style.display = 'flex';
+    document.getElementById('voiceWrapper').style.display = 'block';
+    const userBar = document.getElementById('userBar');
+    if (userBar) userBar.style.display = 'flex';
+    // Guest profile
+    ['userAvatar','psAvatar','sidebarAvatar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = '👤'; el.style.fontSize = id === 'psAvatar' ? '2.2rem' : '1.4rem'; }
+    });
+    const psName = document.getElementById('psName');
+    if (psName) psName.value = localStorage.getItem('mis-pendientes-displayname') || 'Invitado';
+    const psEmail = document.getElementById('psEmail');
+    if (psEmail) psEmail.textContent = 'Sin cuenta';
+    const sn = document.getElementById('sidebarName');
+    if (sn) sn.textContent = localStorage.getItem('mis-pendientes-displayname') || 'Invitado';
+    init();
+  }
+
+  function showApp(user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    const userBar = document.getElementById('userBar');
+    if (userBar) userBar.style.display = 'flex';
+    document.getElementById('fabWrapper').style.display = 'flex';
+    document.getElementById('voiceWrapper').style.display = 'block';
+    // Avatars
+    const avatar = document.getElementById('userAvatar');
+    const psAv = document.getElementById('psAvatar');
+    if (user.photoURL) {
+      if (avatar) avatar.innerHTML = `<img src="${user.photoURL}" alt="" />`;
+      if (psAv) psAv.innerHTML = `<img src="${user.photoURL}" alt="" />`;
+    } else {
+      const initial = (user.displayName || user.email || 'U')[0].toUpperCase();
+      if (avatar) avatar.textContent = initial;
+      if (psAv) psAv.textContent = initial;
+    }
+    const savedName = localStorage.getItem('mis-pendientes-displayname');
+    const psName = document.getElementById('psName');
+    if (psName) psName.value = savedName || user.displayName || 'Usuario';
+    const psEmail = document.getElementById('psEmail');
+    if (psEmail) psEmail.textContent = user.email || '';
+    updateSidebarUser(user);
+    init();
+  }
+
+  async function logout() {
+    closeProfileScreen();
+    // Fade out zen — suave como terminar el día
+    const app = document.getElementById('appScreen');
+    const bar = document.getElementById('userBar');
+    [app, bar].forEach(el => { if(el) { el.style.transition = 'opacity 0.6s ease'; el.style.opacity = '0'; } });
+    await new Promise(r => setTimeout(r, 650));
+    if (window._auth && window._auth.currentUser) {
+      await window._signOut(window._auth);
+    }
+    [app, bar].forEach(el => { if(el) { el.style.opacity = ''; el.style.transition = ''; } });
+    document.getElementById('userBar').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('fabWrapper').style.display = 'none';
+    document.getElementById('voiceWrapper').style.display = 'none';
+    // Fade in del lobby
+    const login = document.getElementById('loginScreen');
+    login.style.opacity = '0';
+    login.style.display = 'flex';
+    login.style.transition = 'opacity 0.5s ease';
+    requestAnimationFrame(() => requestAnimationFrame(() => { login.style.opacity = '1'; }));
+    setTimeout(() => { login.style.transition = ''; login.style.opacity = ''; }, 600);
+  }
+
+  // ===== MUSIC =====
+  function toggleMusic() {
+    const audio = document.getElementById('bgMusic');
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
+      syncMusicToggles(true);
+    } else {
+      audio.pause();
+      syncMusicToggles(false);
+    }
+  }
+  function toggleMusicFromSettings(on) {
+    const audio = document.getElementById('bgMusic');
+    if (!audio) return;
+    if (on) { audio.play().catch(() => {}); }
+    else { audio.pause(); }
+    syncMusicToggles(on);
+  }
+  function syncMusicToggles(on) {
+    const t1 = document.getElementById('musicToggle');
+    const t2 = document.getElementById('musicToggleDesktop');
+    if (t1) t1.checked = on;
+    if (t2) t2.checked = on;
+  }
+  function syncMusicSettingsToggle() {
+    const audio = document.getElementById('bgMusic');
+    const t2 = document.getElementById('musicToggleDesktop');
+    if (t2 && audio) t2.checked = !audio.paused;
+  }
+
+  // ===== APP LOGIC =====
+  const STORAGE_KEY = "mis-pendientes-v7";
+  const PLAYLIST_KEY = "mis-pendientes-playlists-v2";
+  let tasks = [], playlists = [], currentView = "all", currentPriority = "all", searchQuery = "", editingId = null, editingPlaylistId = null;
+  let fabOpen = false, quickType = 'task', isRecording = false;
+
+  function init() {
+    loadTheme();
+    loadAccentColor();
+    loadSavedAvatar();
+    recordActivity();
+    loadLayout();
+    loadTasks();
+    loadTrash();
+    loadPlaylists();
+    updateTrashBadge();
+    renderTasks();
+    updateStats();
+    setupVoice();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  function loadTasks() { try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { tasks = []; } }
+  function saveTasks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); updateStats(); }
+  function loadPlaylists() { try { playlists = JSON.parse(localStorage.getItem(PLAYLIST_KEY)) || []; } catch { playlists = []; } }
+  function savePlaylists() { localStorage.setItem(PLAYLIST_KEY, JSON.stringify(playlists)); }
+
+  // Voice
+  function setupVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // Ocultar el botón si el browser no soporta voz
+    if (!SR) {
+      const vw = document.getElementById('voiceWrapper');
+      if (vw) vw.style.display = 'none';
+      return;
+    }
+    window.recognition = new SR();
+    window.recognition.continuous = false;
+    window.recognition.interimResults = false;
+    window.recognition.lang = 'es-ES';
+    window.recognition.onresult = (e) => {
+      const text = Array.from(e.results).map(r => r[0].transcript).join('').trim();
+      if (text) {
+        if (!document.getElementById('taskModal').classList.contains('active')) {
+          openAddTask();
+        }
+        const titleEl = document.getElementById('taskTitle');
+        if (titleEl) titleEl.value = text;
+      }
+      stopRecording();
+    };
+    window.recognition.onerror = (e) => {
+      // Si no tiene permiso de micrófono, avisamos suavemente
+      if (e.error === 'not-allowed') {
+        const lbl = document.getElementById('voiceLabel');
+        if (lbl) { lbl.textContent = 'permiso denegado'; lbl.classList.add('visible'); setTimeout(() => { lbl.classList.remove('visible'); lbl.textContent = 'escuchando...'; }, 2500); }
+      }
+      stopRecording();
+    };
+    window.recognition.onend = () => { if (isRecording) stopRecording(); };
+  }
+
+  function toggleVoice() {
+    if (isRecording) { stopRecording(); } else { startRecording(); }
+  }
+  function startRecording() {
+    if (!window.recognition) return;
+    isRecording = true;
+    document.getElementById('voiceBtn').classList.add('recording');
+    document.getElementById('voiceBtn').textContent = '🎙️';
+    const lbl = document.getElementById('voiceLabel');
+    if (lbl) { lbl.textContent = 'escuchando...'; lbl.classList.add('visible'); }
+    try { window.recognition.start(); } catch(e) { stopRecording(); }
+  }
+  function stopRecording() {
+    isRecording = false;
+    const btn = document.getElementById('voiceBtn');
+    if (btn) { btn.classList.remove('recording'); btn.textContent = '🎤'; }
+    const lbl = document.getElementById('voiceLabel');
+    if (lbl) lbl.classList.remove('visible');
+    try { window.recognition && window.recognition.stop(); } catch(e) {}
+  }
+
+  // Tasks
+  function openAddTask() {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = 'Nueva tarea';
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskDesc').value = '';
+    document.getElementById('taskCategory').value = 'otros';
+    document.getElementById('taskPriority').value = 'medium';
+    document.getElementById('taskDate').value = '';
+    document.getElementById('taskTags').value = '';
+    document.getElementById('subtaskContainer').innerHTML = '';
+    document.getElementById('taskModal').classList.add('active');
+    setTimeout(() => document.getElementById('taskTitle').focus(), 100);
+  }
+
+  function editTask(id) {
+    const t = tasks.find(t => t.id === id); if (!t) return;
+    editingId = id;
+    document.getElementById('modalTitle').textContent = 'Editar tarea';
+    document.getElementById('taskTitle').value = t.title;
+    document.getElementById('taskDesc').value = t.description || '';
+    document.getElementById('taskCategory').value = t.category || 'otros';
+    document.getElementById('taskPriority').value = t.priority || 'medium';
+    document.getElementById('taskDate').value = t.date || '';
+    document.getElementById('taskTags').value = (t.tags || []).join(', ');
+    document.getElementById('subtaskContainer').innerHTML = '';
+    (t.subtasks || []).forEach(st => addSubtaskInput(st.title));
+    document.getElementById('taskModal').classList.add('active');
+  }
+
+  function saveTask() {
+    const title = document.getElementById('taskTitle').value.trim();
+    if (!title) return;
+    const task = {
+      id: editingId || Date.now(), title,
+      description: document.getElementById('taskDesc').value,
+      category: document.getElementById('taskCategory').value,
+      priority: document.getElementById('taskPriority').value,
+      date: document.getElementById('taskDate').value,
+      tags: document.getElementById('taskTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+      subtasks: Array.from(document.querySelectorAll('.subtask-input')).map((inp,i) => ({id:i,title:inp.value,done:false})),
+      done: editingId ? (tasks.find(t=>t.id===editingId)?.done || false) : false,
+      createdAt: editingId ? (tasks.find(t=>t.id===editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+    };
+    if (editingId) { tasks = tasks.map(t => t.id===editingId ? task : t); }
+    else { tasks.push(task); }
+    saveTasks(); renderTasks(); closeModal();
+  }
+
+  function deleteTask(id) {
+    if (confirm('Mover a papelera?')) {
+      loadTrash();
+      const t = tasks.find(t=>t.id===id);
+      if(t) { trash.push(t); saveTrash(); }
+      tasks = tasks.filter(t=>t.id!==id);
+      saveTasks(); renderTasks();
+    }
+  }
+  function toggleTask(id) { tasks = tasks.map(t=>t.id===id?{...t,done:!t.done}:t); saveTasks(); renderTasks(); }
+  function toggleSubtask(tid, sid) {
+    tasks = tasks.map(t => t.id===tid ? {...t, subtasks: t.subtasks.map(s=>s.id===sid?{...s,done:!s.done}:s)} : t);
+    saveTasks(); renderTasks();
+  }
+  function addSubtaskInput(val='') {
+    const c = document.getElementById('subtaskContainer');
+    const d = document.createElement('div'); d.style.marginBottom='6px';
+    d.innerHTML = `<input type="text" class="subtask-input form-input" placeholder="Subtarea..." value="${val}">`;
+    c.appendChild(d);
+  }
+  function clearCompleted() { if(confirm('¿Eliminar todas las completadas?')){tasks=tasks.filter(t=>!t.done);saveTasks();renderTasks();} }
+  function closeModal() { document.getElementById('taskModal').classList.remove('active'); }
+
+  // Filters
+  function setView(v, btn) {
+    currentView = v;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const isPl = v==='playlists';
+    document.getElementById('playlistSection').classList.toggle('visible', isPl);
+    document.getElementById('taskList').style.display = isPl?'none':'';
+    document.querySelector('.search-section').style.display = isPl?'none':'';
+    if (isPl) renderPlaylists(); else renderTasks();
+  }
+  function filterByPriority(p, el) {
+    currentPriority = p;
+    document.querySelectorAll('.filter-badge').forEach(e=>e.classList.remove('active'));
+    el.classList.add('active'); renderTasks();
+  }
+  function updateSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); renderTasks(); }
+
+  function getFiltered() {
+    let f = tasks;
+    if (currentView==='pending') f=f.filter(t=>!t.done);
+    else if (currentView==='completed') f=f.filter(t=>t.done);
+    else if (currentView==='today') { const td=new Date().toISOString().split('T')[0]; f=f.filter(t=>t.date===td); }
+    else if (currentView==='overdue') {
+      const now=new Date(); now.setHours(0,0,0,0);
+      f=f.filter(t=>{if(!t.date||t.done)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d<now;});
+    }
+    if (currentPriority!=='all') f=f.filter(t=>t.priority===currentPriority);
+    if (searchQuery) f=f.filter(t=>t.title.toLowerCase().includes(searchQuery)||(t.description||'').toLowerCase().includes(searchQuery)||(t.tags||[]).some(g=>g.toLowerCase().includes(searchQuery)));
+    return f.sort((a,b)=>{
+      const p={high:0,medium:1,low:2};
+      if(p[a.priority]!==p[b.priority])return p[a.priority]-p[b.priority];
+      if(a.date&&b.date)return new Date(a.date)-new Date(b.date);
+      if(a.date)return -1; if(b.date)return 1;
+      return new Date(b.createdAt)-new Date(a.createdAt);
+    });
+  }
+
+  function buildTaskHTML(t) {
+    return `
+      <div class="task-row${t.done?' done':''}" id="task-${t.id}">
+        <div class="checkbox${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+        <div class="task-content">
+          <div class="task-header">
+            <p class="task-text${t.done?' done-text':''}">${t.title}</p>
+          </div>
+          ${t.description?`<p class="task-desc">${t.description}</p>`:''}
+          <div class="task-badges">
+            <span class="badge badge-priority">${{high:'alta',medium:'media',low:'baja'}[t.priority]||t.priority}</span>
+            <span class="badge badge-category">${t.category||''}</span>
+            ${t.date?`<span class="badge ${getDateClass(t.date,t.done)}">${getDateLabel(t.date)}</span>`:''}
+            ${(t.tags||[]).map(g=>`<span class="badge badge-tag">#${g}</span>`).join('')}
+          </div>
+          ${t.subtasks&&t.subtasks.length?`<div class="subtask-list">${t.subtasks.map(s=>`
+            <div class="subtask-item">
+              <div class="subtask-checkbox${s.done?' checked':''}" onclick="toggleSubtask(${t.id},${s.id})">${s.done?'✓':''}</div>
+              <span class="subtask-text${s.done?' done':''}">${s.title}</span>
+            </div>`).join('')}</div>`:''}
+        </div>
+        <div class="task-actions">
+          <button class="btn-icon" onclick="editTask(${t.id})">✏️</button>
+          <button class="btn-icon" onclick="deleteTask(${t.id})">🗑️</button>
+        </div>
+      </div>`;
+  }
+
+  function renderTasks() {
+    const f = getFiltered();
+    const empty = '<div class="empty">Nada aquí aún. 🌿</div>';
+    const html = f.length ? f.map(buildTaskHTML).join('') : empty;
+    const list = document.getElementById('taskList');
+    if (list) list.innerHTML = html;
+    const listD = document.getElementById('taskListDesktop');
+    if (listD) listD.innerHTML = html;
+    if (currentView === 'playlists') renderPlaylists();
+  }
+
+  function getDateClass(d,done){
+    if(done)return 'badge-date';
+    const now=new Date();now.setHours(0,0,0,0);
+    const due=new Date(d);due.setHours(0,0,0,0);
+    return due<now?'badge-overdue':'badge-date';
+  }
+  function getDateLabel(d){
+    const now=new Date();now.setHours(0,0,0,0);
+    const due=new Date(d);due.setHours(0,0,0,0);
+    const days=Math.ceil((due-now)/86400000);
+    if(days<0)return`Venció hace ${Math.abs(days)}d`;
+    if(days===0)return'Hoy vence';if(days===1)return'Mañana';return`${days}d`;
+  }
+
+  function updateStats(){
+    const p=tasks.filter(t=>!t.done).length,c=tasks.filter(t=>t.done).length;
+    const now=new Date();now.setHours(0,0,0,0);
+    const o=tasks.filter(t=>{if(t.done||!t.date)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d<now;}).length;
+    const setT=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    setT('statTotal',tasks.length);setT('statPending',p);setT('statCompleted',c);setT('statOverdue',o);
+    setT('statTotal2',tasks.length);setT('statPending2',p);setT('statCompleted2',c);setT('statOverdue2',o);
+    const b=document.getElementById('countBadge');
+    if(b){if(p>0){b.textContent=`${p} sin completar`;b.style.display='';}else b.style.display='none';}
+    const cb=document.getElementById('clearCompletedBtn');if(cb)cb.style.display=c>0?'':'none';
+    const cb2=document.getElementById('clearCompletedBtn2');if(cb2)cb2.style.display=c>0?'':'none';
+  }
+
+  // Quick create
+  function toggleFab(){fabOpen=!fabOpen;document.getElementById('fabOptions').classList.toggle('open',fabOpen);document.getElementById('fabMain').classList.toggle('open',fabOpen);}
+  function closeFab(){fabOpen=false;document.getElementById('fabOptions').classList.remove('open');document.getElementById('fabMain').classList.remove('open');}
+  function openQuickCreate(type){closeFab();quickType=type;document.getElementById('quickText').value='';document.getElementById('quickExtra').style.display=type==='task'?'':'none';document.getElementById('quickModalTitle').textContent=type==='task'?'Nueva tarea':'Nota rápida';document.getElementById('quickLabel').textContent=type==='task'?'Título':'Nota';document.getElementById('quickModal').classList.add('active');setTimeout(()=>document.getElementById('quickText').focus(),100);}
+  function saveQuickItem(){const text=document.getElementById('quickText').value.trim();if(!text)return;tasks.push({id:Date.now(),title:text,description:'',category:quickType==='note'?'nota':'otros',priority:quickType==='task'?document.getElementById('quickPriority').value:'low',date:quickType==='task'?document.getElementById('quickDate').value:'',tags:quickType==='note'?['nota']:[],subtasks:[],done:false,createdAt:new Date().toISOString()});saveTasks();renderTasks();closeQuickModal();}
+  function closeQuickModal(){document.getElementById('quickModal').classList.remove('active');}
+
+  // Playlists
+  function openNewPlaylistModal(){editingPlaylistId=null;document.getElementById('playlistModalTitle').textContent='Nueva playlist';document.getElementById('playlistEmoji').value='';document.getElementById('playlistName').value='';document.getElementById('playlistModal').classList.add('active');}
+  function closePlaylistModal(){document.getElementById('playlistModal').classList.remove('active');}
+  function savePlaylist(){const name=document.getElementById('playlistName').value.trim();if(!name)return;const emoji=document.getElementById('playlistEmoji').value.trim()||'🎵';if(editingPlaylistId){playlists=playlists.map(p=>p.id===editingPlaylistId?{...p,name,emoji}:p);}else{playlists.push({id:Date.now(),name,emoji,items:[]});}savePlaylists();renderPlaylists();closePlaylistModal();}
+  function deletePlaylist(id){if(confirm('¿Eliminar playlist?')){playlists=playlists.filter(p=>p.id!==id);savePlaylists();renderPlaylists();}}
+  function togglePlaylistOpen(id){const z=document.getElementById('pl-zone-'+id);if(z)z.classList.toggle('open');}
+  function addItemToPlaylist(pid){const sel=document.getElementById('pl-select-'+pid);const tid=parseInt(sel.value);if(!tid)return;const pl=playlists.find(p=>p.id===pid);if(!pl||pl.items.includes(tid))return;pl.items.push(tid);savePlaylists();renderPlaylists();setTimeout(()=>{const z=document.getElementById('pl-zone-'+pid);if(z)z.classList.add('open');},10);}
+  function removeItemFromPlaylist(pid,tid){const pl=playlists.find(p=>p.id===pid);if(!pl)return;pl.items=pl.items.filter(i=>i!==tid);savePlaylists();renderPlaylists();setTimeout(()=>{const z=document.getElementById('pl-zone-'+pid);if(z)z.classList.add('open');},10);}
+
+  function renderPlaylists(){
+    const grid=document.getElementById('playlistGrid');if(!grid)return;
+    if(!playlists.length){grid.innerHTML='<div class="empty" style="padding:24px 0">Creá tu primera playlist 🎵</div>';return;}
+    grid.innerHTML=playlists.map(pl=>{
+      const pts=pl.items.map(id=>tasks.find(t=>t.id===id)).filter(Boolean);
+      const av=tasks.filter(t=>!pl.items.includes(t.id));
+      return`<div class="playlist-card">
+        <div class="playlist-card-header" onclick="togglePlaylistOpen(${pl.id})">
+          <div class="playlist-card-left"><span style="font-size:1.2rem">${pl.emoji}</span><div><div class="playlist-name">${pl.name}</div><div class="playlist-meta">${pts.length} ítems</div></div></div>
+          <div style="display:flex;gap:4px"><button class="btn-icon" onclick="event.stopPropagation();deletePlaylist(${pl.id})">🗑️</button><span style="color:var(--text-muted);font-size:0.7rem">▾</span></div>
+        </div>
+        <div class="playlist-items" id="pl-zone-${pl.id}">
+          ${pts.map(t=>`<div class="pl-item"><span class="pl-item-text">${t.title}</span><button class="pl-item-remove" onclick="removeItemFromPlaylist(${pl.id},${t.id})">✕</button></div>`).join('')}
+          <div class="pl-add-row">
+            <select class="pl-add-select" id="pl-select-${pl.id}"><option value="">— Agregar tarea —</option>${av.map(t=>`<option value="${t.id}">${t.title.substring(0,40)}</option>`).join('')}</select>
+            <button class="pl-add-btn" onclick="addItemToPlaylist(${pl.id})">Agregar</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Export/Import
+  function exportData(){const b=new Blob([JSON.stringify(tasks,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`pendientes-${new Date().toISOString().split('T')[0]}.json`;a.click();}
+  function importData(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{const f=e.target.files[0];const r=new FileReader();r.onload=evt=>{try{const d=JSON.parse(evt.target.result);if(Array.isArray(d)){tasks=d;saveTasks();renderTasks();}}catch{}};r.readAsText(f);};i.click();}
+  function resetApp() {
+    if (confirm('¿Borrar todas las tareas? Esta acción no se puede deshacer.')) {
+      tasks = [];
+      saveTasks();
+      renderTasks();
+      closeSettings();
+    }
+  }
+
+  // Theme
+  function applyTheme(t){document.body.classList.toggle('theme-light',t==='light');localStorage.setItem('mis-pendientes-theme',t);const s=document.getElementById('themeSelect');if(s)s.value=t;}
+  function loadTheme(){const t=localStorage.getItem('mis-pendientes-theme')||'dark';applyTheme(t);}
+  function openSettings(){
+    document.getElementById('themeSelect').value=localStorage.getItem('mis-pendientes-theme')||'dark';
+    document.getElementById('layoutSelect').value=localStorage.getItem('mis-pendientes-layout')||'app';
+    document.getElementById('settingsModal').classList.add('active');
+  }
+  function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
+
+  // Layout mode
+  function applyLayout(mode) {
+    localStorage.setItem('mis-pendientes-layout', mode);
+    document.body.classList.toggle('mode-desktop', mode === 'desktop');
+    const isDesktop = mode === 'desktop';
+    document.getElementById('mobileLayout').style.display = isDesktop ? 'none' : '';
+    document.getElementById('desktopLayout').style.display = isDesktop ? 'grid' : 'none';
+    document.getElementById('fabWrapper').style.display = isDesktop ? 'none' : 'flex';
+    document.getElementById('voiceWrapper').style.display = isDesktop ? 'none' : 'block';
+    renderTasks();
+    updateStats();
+  }
+  function loadLayout() {
+    const mode = localStorage.getItem('mis-pendientes-layout') || 'app';
+    applyLayout(mode);
+  }
+
+  // Sync sidebar active state
+  function syncSidebar(btn) {
+    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const titles = {all:'Todas las tareas',pending:'Pendientes',completed:'Completadas',overdue:'Vencidas',today:'Tareas de hoy',playlists:'Mis Playlists'};
+    const el = document.getElementById('desktopViewTitle');
+    if (el) el.textContent = titles[currentView] || 'Tareas';
+    const plDesktop = document.getElementById('playlistSectionDesktop');
+    const taskDesktop = document.getElementById('taskListDesktop');
+    if (plDesktop && taskDesktop) {
+      plDesktop.style.display = currentView === 'playlists' ? 'block' : 'none';
+      taskDesktop.style.display = currentView === 'playlists' ? 'none' : '';
+    }
+  }
+
+  // Password visibility toggle
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text'; btn.textContent = '🙈'; btn.title = 'Ocultar contraseña';
+    } else {
+      input.type = 'password'; btn.textContent = '👁'; btn.title = 'Ver contraseña';
+    }
+  }
+
+  // Update sidebar user info
+  function updateSidebarUser(user) {
+    const sa = document.getElementById('sidebarAvatar');
+    const sn = document.getElementById('sidebarName');
+    const se = document.getElementById('sidebarEmail');
+    if (!sa) return;
+    if (user) {
+      // Prefer saved custom avatar over Firebase photo
+      const saved = localStorage.getItem(AVATAR_KEY);
+      if (saved && saved.startsWith('img:')) {
+        sa.innerHTML = `<img src="${saved.slice(4)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      } else if (saved) {
+        sa.textContent = saved; sa.style.fontSize = '1.4rem';
+      } else if (user.photoURL) {
+        sa.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      } else {
+        sa.textContent = (user.displayName || user.email || 'U')[0].toUpperCase();
+      }
+      const savedName = localStorage.getItem('mis-pendientes-displayname');
+      if (sn) sn.textContent = savedName || user.displayName || 'Usuario';
+      if (se) se.textContent = user.email || '';
+    }
+  }
+
+
+  // Profile menu
+  // ===== PROFILE SCREEN =====
+  const ACCENT_COLORS = [
+    { name:'Crema',   dark:'#e8e0d0', darkFg:'#0d0d0f', light:'#5a4a3a', lightFg:'#f5f0e8' },
+    { name:'Sage',    dark:'#8db89a', darkFg:'#0d0d0f', light:'#2d6b45', lightFg:'#f5f0e8' },
+    { name:'Durazno', dark:'#d4957a', darkFg:'#0d0d0f', light:'#a0502a', lightFg:'#f5f0e8' },
+    { name:'Lila',    dark:'#b09aca', darkFg:'#0d0d0f', light:'#6a3a9a', lightFg:'#f5f0e8' },
+    { name:'Cielo',   dark:'#7aaeca', darkFg:'#0d0d0f', light:'#2a5a8a', lightFg:'#f5f0e8' },
+    { name:'Rosa',    dark:'#c9909a', darkFg:'#0d0d0f', light:'#8a3040', lightFg:'#f5f0e8' },
+    { name:'Ambar',   dark:'#c8a85a', darkFg:'#0d0d0f', light:'#7a5010', lightFg:'#f5f0e8' },
+    { name:'Menta',   dark:'#7abfb0', darkFg:'#0d0d0f', light:'#1a6a58', lightFg:'#f5f0e8' },
+  ];
+  const PRESET_AVATARS = ['🐱','🐻','🦊','🐼','🐸','🦁','🐺','🐨','🦝','🐙','🌙','⭐','🌿','🍃','☁️','🎵','🍵','✨','🌸','🎈'];
+  const AVATAR_KEY = 'mis-pendientes-avatar';
+  const STREAK_KEY = 'mis-pendientes-streak';
+  const NOTIF_SETTINGS_KEY = 'mis-pendientes-notif-settings';
+
+  function openProfileScreen() {
+    document.getElementById('profileScreen').classList.add('open');
+    document.getElementById('profileBackdrop').classList.add('open');
+    syncProfileScreen();
+  }
+  function closeProfileScreen() {
+    document.getElementById('profileScreen').classList.remove('open');
+    document.getElementById('profileBackdrop').classList.remove('open');
+    closeAvatarPicker(); closeAppearancePanel(); closeNotifSettings();
+  }
+  function syncProfileScreen() {
+    const isDark = (localStorage.getItem('mis-pendientes-theme') || 'dark') === 'dark';
+    const tgl = document.getElementById('psThemeToggle');
+    if (tgl) tgl.checked = !isDark;
+    document.getElementById('psThemeLabel').textContent = isDark ? 'Tema oscuro' : 'Tema claro';
+    const notifOn = localStorage.getItem('mis-pendientes-notif') !== 'off';
+    const ntgl = document.getElementById('psNotifToggle');
+    if (ntgl) ntgl.checked = notifOn;
+    document.getElementById('psNotifStatus').textContent = notifOn ? 'Activadas' : 'Desactivadas';
+    loadTrash();
+    document.getElementById('psTrashSub').textContent = trash.length > 0 ? trash.length + ' elemento' + (trash.length!==1?'s':'') : 'Vacía';
+    const idx = parseInt(localStorage.getItem('mis-pendientes-accent') || '0');
+    const lbl = document.getElementById('psAccentLabel');
+    if (lbl) lbl.textContent = ACCENT_COLORS[idx] ? ACCENT_COLORS[idx].name : 'Crema';
+    document.getElementById('psStatDone').textContent = tasks.filter(t=>t.done).length;
+    document.getElementById('psStatPending').textContent = tasks.filter(t=>!t.done).length;
+    document.getElementById('psStatStreak').textContent = getStreak() + '🔥';
+    loadNotifSettings();
+  }
+  function getStreak() {
+    try { const s = JSON.parse(localStorage.getItem(STREAK_KEY)) || {}; return s.count || 0; } catch { return 0; }
+  }
+  function recordActivity() {
+    try {
+      const today = new Date().toDateString();
+      const s = JSON.parse(localStorage.getItem(STREAK_KEY)) || { count:0, last:'' };
+      if (s.last === today) return;
+      const yesterday = new Date(Date.now()-86400000).toDateString();
+      s.count = (s.last === yesterday) ? s.count + 1 : 1;
+      s.last = today;
+      localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+    } catch {}
+  }
+  function saveDisplayName(val) {
+    const name = val.trim() || 'Usuario';
+    localStorage.setItem('mis-pendientes-displayname', name);
+    document.getElementById('psName').value = name;
+    // Update all name displays
+    const sn = document.getElementById('sidebarName');
+    if (sn) sn.textContent = name;
+    // Update initials if no custom avatar
+    const saved = localStorage.getItem(AVATAR_KEY);
+    if (!saved) {
+      ['userAvatar','sidebarAvatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.querySelector('img')) el.textContent = name[0].toUpperCase();
+      });
+    }
+  }
+  // Avatar picker
+  function openAvatarPicker() { renderAvatarGrid(); document.getElementById('psAvatarPanel').classList.add('open'); }
+  function closeAvatarPicker() { document.getElementById('psAvatarPanel').classList.remove('open'); }
+  function renderAvatarGrid() {
+    const saved = localStorage.getItem(AVATAR_KEY) || '';
+    document.getElementById('psAvatarGrid').innerHTML = PRESET_AVATARS.map(e =>
+      `<div class="ps-avatar-option${saved===e?' selected':''}" onclick="selectPresetAvatar('${e}')">${e}</div>`
+    ).join('');
+  }
+  function getAllAvatarEls() {
+    return ['psAvatar','userAvatar','sidebarAvatar'].map(id => document.getElementById(id)).filter(Boolean);
+  }
+  function selectPresetAvatar(emoji) {
+    localStorage.setItem(AVATAR_KEY, emoji);
+    getAllAvatarEls().forEach(el => {
+      el.innerHTML = '';
+      el.textContent = emoji;
+      el.style.fontSize = el.id === 'psAvatar' ? '2.2rem' : '1.4rem';
+    });
+    // update sidebar name too
+    const savedName = localStorage.getItem('mis-pendientes-displayname');
+    const sn = document.getElementById('sidebarName');
+    if (sn && savedName) sn.textContent = savedName;
+    renderAvatarGrid();
+    closeAvatarPicker();
+  }
+  function handleGalleryImage(input) {
+    const file = input.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      localStorage.setItem(AVATAR_KEY, 'img:' + dataUrl);
+      getAllAvatarEls().forEach(el => {
+        el.innerHTML = `<img src="${dataUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
+      });
+      closeAvatarPicker();
+    };
+    reader.readAsDataURL(file);
+  }
+  function loadSavedAvatar() {
+    const saved = localStorage.getItem(AVATAR_KEY);
+    if (!saved) return;
+    if (saved.startsWith('img:')) {
+      getAllAvatarEls().forEach(el => {
+        el.innerHTML = `<img src="${saved.slice(4)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`;
+      });
+    } else {
+      getAllAvatarEls().forEach(el => {
+        el.innerHTML = '';
+        el.textContent = saved;
+        el.style.fontSize = el.id === 'psAvatar' ? '2.2rem' : '1.4rem';
+      });
+    }
+  }
+  // Appearance panel
+  function openAppearancePanel() { renderColorPalette(); document.getElementById('psAppearancePanel').classList.add('open'); }
+  function closeAppearancePanel() { document.getElementById('psAppearancePanel').classList.remove('open'); }
+  function renderColorPalette() {
+    const palette = document.getElementById('psColorPalette');
+    if (!palette) return;
+    const idx = parseInt(localStorage.getItem('mis-pendientes-accent') || '0');
+    const isDark = (localStorage.getItem('mis-pendientes-theme')||'dark') === 'dark';
+    palette.innerHTML = ACCENT_COLORS.map((c,i) =>
+      `<div class="ps-color-dot${i===idx?' selected':''}" title="${c.name}" style="background:${isDark?c.dark:c.light}" onclick="applyAccent(${i})"></div>`
+    ).join('');
+  }
+  function applyAccent(idx) {
+    localStorage.setItem('mis-pendientes-accent', idx);
+    const isDark = (localStorage.getItem('mis-pendientes-theme')||'dark') === 'dark';
+    const c = ACCENT_COLORS[idx];
+    document.documentElement.style.setProperty('--accent', isDark ? c.dark : c.light);
+    document.documentElement.style.setProperty('--accent-fg', isDark ? c.darkFg : c.lightFg);
+    const lbl = document.getElementById('psAccentLabel');
+    if (lbl) lbl.textContent = c.name;
+    renderColorPalette();
+  }
+  function loadAccentColor() { applyAccent(parseInt(localStorage.getItem('mis-pendientes-accent') || '0')); }
+  function toggleThemeFromProfile(isLight) {
+    applyTheme(isLight ? 'light' : 'dark');
+    document.getElementById('psThemeLabel').textContent = isLight ? 'Tema claro' : 'Tema oscuro';
+    applyAccent(parseInt(localStorage.getItem('mis-pendientes-accent') || '0'));
+    renderColorPalette();
+  }
+  function toggleNotifFromProfile(on) {
+    localStorage.setItem('mis-pendientes-notif', on ? 'on' : 'off');
+    document.getElementById('psNotifStatus').textContent = on ? 'Activadas' : 'Desactivadas';
+    if (on && 'Notification' in window) Notification.requestPermission();
+  }
+  function loadNotifSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem(NOTIF_SETTINGS_KEY)) || {};
+      document.getElementById('notifOverdue').checked = s.overdue !== false;
+      document.getElementById('notifDaily').checked = s.daily !== false;
+      document.getElementById('notifHighPriority').checked = s.highPriority === true;
+      document.getElementById('notifTime').value = s.time || '09:00';
+    } catch {}
+  }
+  function saveNotifSettings() {
+    localStorage.setItem(NOTIF_SETTINGS_KEY, JSON.stringify({
+      overdue: document.getElementById('notifOverdue').checked,
+      daily: document.getElementById('notifDaily').checked,
+      highPriority: document.getElementById('notifHighPriority').checked,
+      time: document.getElementById('notifTime').value,
+    }));
+  }
+  function openNotifSettings() { document.getElementById('psNotifPanel').classList.add('open'); loadNotifSettings(); }
+  function closeNotifSettings() { const p = document.getElementById('psNotifPanel'); if(p) p.classList.remove('open'); }
+  async function switchAccount() { closeProfileScreen(); await logout(); }
+  // Compat stubs (called from sidebar/desktop)
+  function toggleProfileMenu() { openProfileScreen(); }
+  function closeProfileMenu() { closeProfileScreen(); }
+  function updateThemeMenuLabel() {}
+  function updateNotifLabel() {}
+  function updateTrashBadge() {
+    const sub = document.getElementById('psTrashSub');
+    if (sub) sub.textContent = trash.length > 0 ? trash.length + ' elemento' + (trash.length!==1?'s':'') : 'Vacía';
+  }
+
+  // Stats modal
+  function showStatsModal() {
+    const total = tasks.length;
+    const done = tasks.filter(t=>t.done).length;
+    const pending = tasks.filter(t=>!t.done).length;
+    const now = new Date(); now.setHours(0,0,0,0);
+    const overdue = tasks.filter(t=>{if(t.done||!t.date)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d<now;}).length;
+    const high = tasks.filter(t=>t.priority==='high'&&!t.done).length;
+    const thisMonth = tasks.filter(t=>{const d=new Date(t.createdAt||0);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).length;
+    const pct = total > 0 ? Math.round((done/total)*100) : 0;
+    document.getElementById('statsGrid').innerHTML = [
+      [done,'Completadas'],
+      [pending,'Pendientes'],
+      [overdue,'Vencidas'],
+      [high,'Alta prioridad'],
+      [thisMonth,'Este mes'],
+      [pct+'%','Completado']
+    ].map(([n,l])=>`<div class="stats-card"><div class="stats-card-num">${n}</div><div class="stats-card-label">${l}</div></div>`).join('');
+    document.getElementById('statsModal').classList.add('active');
+  }
+  function closeStatsModal() { document.getElementById('statsModal').classList.remove('active'); }
+
+  // Trash
+  const TRASH_KEY = 'mis-pendientes-trash-v1';
+  let trash = [];
+  function loadTrash() { try { trash = JSON.parse(localStorage.getItem(TRASH_KEY)) || []; } catch { trash = []; } }
+  function saveTrash() { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); updateTrashBadge(); }
+  function updateTrashBadge() {
+    const sub = document.getElementById('psTrashSub');
+    if (sub) sub.textContent = trash.length > 0 ? trash.length + ' elemento' + (trash.length!==1?'s':'') : 'Vacía';
+  }
+  function openTrash() {
+    loadTrash();
+    const list = document.getElementById('trashList');
+    if (!trash.length) { list.innerHTML = '<div class="empty" style="padding:24px 0">La papelera esta vacia.</div>'; }
+    else {
+      list.innerHTML = trash.map(t=>`
+        <div class="trash-item">
+          <span class="trash-item-text">${t.title}</span>
+          <button class="trash-restore" onclick="restoreTask(${t.id})">Restaurar</button>
+        </div>`).join('');
+    }
+    document.getElementById('trashModal').classList.add('active');
+  }
+  function closeTrashModal() { document.getElementById('trashModal').classList.remove('active'); }
+  function restoreTask(id) {
+    const t = trash.find(t=>t.id===id); if(!t) return;
+    t.done = false;
+    tasks.push(t);
+    trash = trash.filter(t=>t.id!==id);
+    saveTasks(); saveTrash(); renderTasks();
+    openTrash();
+  }
+  function emptyTrash() {
+    if(confirm('Vaciar papelera permanentemente?')) { trash=[]; saveTrash(); closeTrashModal(); }
+  }
+
+  document.addEventListener('click',e=>{if(fabOpen&&!e.target.closest('.fab-wrapper'))closeFab();});
+</script>
+
+<!-- Stats Modal -->
+<div class="modal" id="statsModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Mis estadisticas</h2><button class="modal-close" onclick="closeStatsModal()">x</button></div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <p style="font-size:0.75rem;color:var(--text-muted);text-align:center;font-family:'DM Mono',monospace" id="statsExtra"></p>
+  </div>
+</div>
+
+<!-- Trash Modal -->
+<div class="modal" id="trashModal">
+  <div class="modal-content">
+    <div class="modal-header"><h2>Papelera</h2><button class="modal-close" onclick="closeTrashModal()">x</button></div>
+    <div id="trashList"></div>
+    <button class="btn-modal-secondary" onclick="emptyTrash()" style="width:100%;margin-top:8px;border-color:var(--danger);color:var(--danger)">Vaciar papelera</button>
+  </div>
+</div>
+</body>
+</html>
