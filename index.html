@@ -847,7 +847,7 @@
         <span class="sidebar-icon">📅</span> Hoy
       </button>
       <button class="sidebar-btn" id="sb-playlists" onclick="setView('playlists',this);syncSidebar(this)">
-        <span class="sidebar-icon">🎵</span> Playlists
+        <span class="sidebar-icon">🗂️</span> Mis Listas
       </button>
 
       <div class="sidebar-divider"></div>
@@ -900,7 +900,7 @@
 
       <div class="task-list" id="taskListDesktop"></div>
       <div class="playlist-section" id="playlistSectionDesktop">
-        <div class="playlist-header-row"><h3>Mis Playlists</h3></div>
+        <div class="playlist-header-row"><h3>Mis Listas</h3></div>
         <div class="playlist-grid" id="playlistGridDesktop"></div>
         <button class="btn-new-playlist" onclick="openNewPlaylistModal()">＋ Nueva playlist</button>
       </div>
@@ -926,7 +926,12 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
-    <audio id="bgMusic" loop src="mondamusic-lofi-lofi-girl-lofi-chill-512853.mp3"></audio>
+    <audio id="bgMusic" loop preload="auto" volume="0.3"></audio>
+    <script>
+      const _bgMusic = document.getElementById('bgMusic');
+      _bgMusic.src = 'mondamusic-lofi-lofi-girl-lofi-chill-512853.mp3';
+      _bgMusic.volume = 0.3;
+    </script>
 
     <div class="stats-row">
       <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
@@ -948,7 +953,7 @@
       <button class="tab-btn" onclick="setView('completed',this)">Completadas</button>
       <button class="tab-btn" onclick="setView('overdue',this)">Vencidas</button>
       <button class="tab-btn" onclick="setView('today',this)">Hoy</button>
-      <button class="tab-btn" onclick="setView('playlists',this)">🎵 Playlists</button>
+      <button class="tab-btn" onclick="setView('playlists',this)">🗂️ Mis Listas</button>
     </div>
 
     <div class="search-section">
@@ -965,7 +970,7 @@
 
     <div class="playlist-section" id="playlistSection">
       <div class="playlist-header-row">
-        <h3>Mis Playlists</h3>
+        <h3>Mis Listas</h3>
       </div>
       <div class="playlist-grid" id="playlistGrid"></div>
       <button class="btn-new-playlist" onclick="openNewPlaylistModal()">＋ Nueva playlist</button>
@@ -1260,19 +1265,35 @@
     const audio = document.getElementById('bgMusic');
     if (!audio) return;
     if (audio.paused) {
-      audio.play().catch(() => {});
-      syncMusicToggles(true);
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise
+          .then(() => { syncMusicToggles(true); localStorage.setItem('musicEnabled', 'true'); })
+          .catch(err => { console.warn('No se pudo reproducir música:', err); syncMusicToggles(false); });
+      }
     } else {
       audio.pause();
+      audio.currentTime = 0;
       syncMusicToggles(false);
+      localStorage.setItem('musicEnabled', 'false');
     }
   }
   function toggleMusicFromSettings(on) {
     const audio = document.getElementById('bgMusic');
     if (!audio) return;
-    if (on) { audio.play().catch(() => {}); }
-    else { audio.pause(); }
-    syncMusicToggles(on);
+    if (on) {
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise
+          .then(() => { syncMusicToggles(true); localStorage.setItem('musicEnabled', 'true'); })
+          .catch(err => { console.warn('No se pudo reproducir música:', err); syncMusicToggles(false); });
+      }
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      syncMusicToggles(false);
+      localStorage.setItem('musicEnabled', 'false');
+    }
   }
   function syncMusicToggles(on) {
     const t1 = document.getElementById('musicToggle');
@@ -1556,14 +1577,14 @@
   function openNewPlaylistModal(){editingPlaylistId=null;document.getElementById('playlistModalTitle').textContent='Nueva playlist';document.getElementById('playlistEmoji').value='';document.getElementById('playlistName').value='';document.getElementById('playlistModal').classList.add('active');}
   function closePlaylistModal(){document.getElementById('playlistModal').classList.remove('active');}
   function savePlaylist(){const name=document.getElementById('playlistName').value.trim();if(!name)return;const emoji=document.getElementById('playlistEmoji').value.trim()||'🎵';if(editingPlaylistId){playlists=playlists.map(p=>p.id===editingPlaylistId?{...p,name,emoji}:p);}else{playlists.push({id:Date.now(),name,emoji,items:[]});}savePlaylists();renderPlaylists();closePlaylistModal();}
-  function deletePlaylist(id){if(confirm('¿Eliminar playlist?')){playlists=playlists.filter(p=>p.id!==id);savePlaylists();renderPlaylists();}}
+  function deletePlaylist(id){if(confirm('¿Eliminar lista?')){playlists=playlists.filter(p=>p.id!==id);savePlaylists();renderPlaylists();}}
   function togglePlaylistOpen(id){const z=document.getElementById('pl-zone-'+id);if(z)z.classList.toggle('open');}
   function addItemToPlaylist(pid){const sel=document.getElementById('pl-select-'+pid);const tid=parseInt(sel.value);if(!tid)return;const pl=playlists.find(p=>p.id===pid);if(!pl||pl.items.includes(tid))return;pl.items.push(tid);savePlaylists();renderPlaylists();setTimeout(()=>{const z=document.getElementById('pl-zone-'+pid);if(z)z.classList.add('open');},10);}
   function removeItemFromPlaylist(pid,tid){const pl=playlists.find(p=>p.id===pid);if(!pl)return;pl.items=pl.items.filter(i=>i!==tid);savePlaylists();renderPlaylists();setTimeout(()=>{const z=document.getElementById('pl-zone-'+pid);if(z)z.classList.add('open');},10);}
 
   function renderPlaylists(){
     const grid=document.getElementById('playlistGrid');if(!grid)return;
-    if(!playlists.length){grid.innerHTML='<div class="empty" style="padding:24px 0">Creá tu primera playlist 🎵</div>';return;}
+    if(!playlists.length){grid.innerHTML='<div class="empty" style="padding:24px 0">Creá tu primera lista 🗂️</div>';return;}
     grid.innerHTML=playlists.map(pl=>{
       const pts=pl.items.map(id=>tasks.find(t=>t.id===id)).filter(Boolean);
       const av=tasks.filter(t=>!pl.items.includes(t.id));
@@ -1626,7 +1647,7 @@
   function syncSidebar(btn) {
     document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    const titles = {all:'Todas las tareas',pending:'Pendientes',completed:'Completadas',overdue:'Vencidas',today:'Tareas de hoy',playlists:'Mis Playlists'};
+    const titles = {all:'Todas las tareas',pending:'Pendientes',completed:'Completadas',overdue:'Vencidas',today:'Tareas de hoy',playlists:'Mis Listas'};
     const el = document.getElementById('desktopViewTitle');
     if (el) el.textContent = titles[currentView] || 'Tareas';
     const plDesktop = document.getElementById('playlistSectionDesktop');
