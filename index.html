@@ -511,6 +511,50 @@
     body.mode-desktop .sidebar-user-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
     body.mode-desktop .sidebar-user-email { font-size: 0.68rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
 
+    /* Panel ☕ Ambiente */
+    body.mode-desktop .ambient-panel {
+      border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; margin: 4px 0;
+    }
+    body.mode-desktop .ambient-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; cursor: pointer; transition: background 0.15s;
+      gap: 8px;
+    }
+    body.mode-desktop .ambient-header:hover { background: var(--surface-alt); }
+    body.mode-desktop .ambient-header-left {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.85rem; font-family: 'DM Sans', sans-serif; color: var(--text-dim);
+    }
+    body.mode-desktop .ambient-chevron {
+      font-size: 0.65rem; color: var(--text-muted);
+      transition: transform 0.2s; display: inline-block;
+    }
+    body.mode-desktop .ambient-panel.open .ambient-chevron { transform: rotate(180deg); }
+    body.mode-desktop .ambient-tracks {
+      display: none; border-top: 1px solid var(--border); padding: 6px;
+    }
+    body.mode-desktop .ambient-panel.open .ambient-tracks { display: block; }
+    body.mode-desktop .ambient-track {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 8px; cursor: pointer;
+      transition: background 0.15s; width: 100%; border: none;
+      background: transparent; text-align: left;
+    }
+    body.mode-desktop .ambient-track:hover { background: var(--surface-alt); }
+    body.mode-desktop .ambient-track.playing { background: var(--surface-alt); }
+    body.mode-desktop .ambient-track-icon { font-size: 0.85rem; width: 18px; text-align: center; flex-shrink: 0; }
+    body.mode-desktop .ambient-track-name {
+      font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+      color: var(--text-dim); flex: 1;
+    }
+    body.mode-desktop .ambient-track.playing .ambient-track-name { color: var(--accent); }
+    body.mode-desktop .ambient-playing-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0; display: none;
+    }
+    body.mode-desktop .ambient-track.playing .ambient-playing-dot { display: block; }
+
     /* hide mobile-only elements in desktop mode */
     body.mode-desktop .fab-wrapper,
     body.mode-desktop .voice-wrapper,
@@ -857,6 +901,23 @@
       <button class="sidebar-btn" onclick="importData()"><span class="sidebar-icon">📤</span> Importar</button>
       <button class="sidebar-btn" onclick="openSettings()"><span class="sidebar-icon">⚙️</span> Configuración</button>
 
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">Ambiente</div>
+      <div class="ambient-panel" id="ambientPanel">
+        <div class="ambient-header" onclick="toggleAmbientPanel()">
+          <span class="ambient-header-left"><span>☕</span> Ambiente sonoro</span>
+          <span class="ambient-chevron">▼</span>
+        </div>
+        <div class="ambient-tracks">
+          <button class="ambient-track" id="track-lofi1" onclick="playAmbientTrack('mondamusic-lofi-lofi-girl-lofi-chill-512853.mp3', 'track-lofi1')">
+            <span class="ambient-track-icon">🌧️</span>
+            <span class="ambient-track-name">Café de lluvia</span>
+            <span class="ambient-playing-dot"></span>
+          </button>
+          <!-- Próximas melodías -->
+        </div>
+      </div>
+
       <div class="sidebar-bottom">
         <div class="sidebar-avatar-row" onclick="toggleProfileMenu()">
           <div class="user-avatar" id="sidebarAvatar" style="width:34px;height:34px;font-size:0.85rem;flex-shrink:0"></div>
@@ -926,6 +987,14 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
+    <!--
+      MÚSICA DE FONDO
+      Título: "Lofi - Lofi Girl - Lofi Chill"
+      Autor: mondamusic (https://pixabay.com/users/mondamusic-54713575/)
+      Fuente: https://pixabay.com/music/lofi-lofi-lofi-girl-lofi-chill-512853/
+      Licencia: Pixabay Content License (uso libre, sin atribución obligatoria)
+      Descargado: 2026-05-28
+    -->
     <audio id="bgMusic" loop preload="auto" volume="0.3"></audio>
     <script>
       const _bgMusic = document.getElementById('bgMusic');
@@ -1089,6 +1158,7 @@
       </button>
     </div>
     <p style="font-size:0.68rem;color:var(--text-muted);margin-top:14px;text-align:center;font-family:'DM Mono',monospace">Mis Pendientes v10 · Firebase Auth</p>
+    <p style="font-size:0.62rem;color:var(--text-muted);margin-top:6px;text-align:center;font-family:'DM Mono',monospace">🎵 "Lofi Chill" · mondamusic · Pixabay License</p>
   </div>
 </div>
 
@@ -1305,6 +1375,42 @@
     const audio = document.getElementById('bgMusic');
     const t2 = document.getElementById('musicToggleDesktop');
     if (t2 && audio) t2.checked = !audio.paused;
+  }
+
+  // ===== AMBIENT PANEL =====
+  function toggleAmbientPanel() {
+    const panel = document.getElementById('ambientPanel');
+    if (panel) panel.classList.toggle('open');
+  }
+  function playAmbientTrack(src, trackId) {
+    const audio = document.getElementById('bgMusic');
+    if (!audio) return;
+    // Quitar estado playing de todos los tracks
+    document.querySelectorAll('.ambient-track').forEach(t => t.classList.remove('playing'));
+    // Si ya está reproduciendo el mismo track, pausar
+    if (!audio.paused && audio.getAttribute('data-track') === trackId) {
+      audio.pause();
+      syncMusicToggles(false);
+      localStorage.setItem('musicEnabled', 'false');
+      return;
+    }
+    // Cambiar fuente si es distinta
+    if (audio.getAttribute('data-track') !== trackId) {
+      audio.src = src;
+      audio.setAttribute('data-track', trackId);
+      audio.volume = 0.3;
+    }
+    const promise = audio.play();
+    if (promise !== undefined) {
+      promise
+        .then(() => {
+          syncMusicToggles(true);
+          localStorage.setItem('musicEnabled', 'true');
+          const btn = document.getElementById(trackId);
+          if (btn) btn.classList.add('playing');
+        })
+        .catch(err => { console.warn('No se pudo reproducir:', err); syncMusicToggles(false); });
+    }
   }
 
   // ===== APP LOGIC =====

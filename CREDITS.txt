@@ -1,0 +1,16 @@
+CRÉDITOS DE CONTENIDO DE TERCEROS
+==================================
+
+MÚSICA DE FONDO
+---------------
+Título:    "Lofi - Lofi Girl - Lofi Chill"
+Autor:     mondamusic
+Perfil:    https://pixabay.com/users/mondamusic-54713575/
+Fuente:    https://pixabay.com/music/lofi-lofi-lofi-girl-lofi-chill-512853/
+Licencia:  Pixabay Content License
+           https://pixabay.com/service/license-summary/
+Descarga:  2026-05-28
+
+Uso en este proyecto: reproducción de fondo opcional dentro de la app
+"Mis Pendientes" como ambiente sonoro. No se distribuye de forma
+independiente ni con fines comerciales.
