@@ -1169,7 +1169,7 @@
 <!-- Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1189,6 +1189,8 @@
   window._auth = auth;
   window._provider = provider;
   window._signInWithPopup = signInWithPopup;
+  window._signInWithRedirect = signInWithRedirect;
+  window._getRedirectResult = getRedirectResult;
   window._signInWithEmail = signInWithEmailAndPassword;
   window._createUser = createUserWithEmailAndPassword;
   window._resetPassword = sendPasswordResetEmail;
@@ -1204,6 +1206,11 @@
   window._getDocs = getDocs;
   window._deleteDoc = deleteDoc;
   window._writeBatch = writeBatch;
+
+  // Capturar resultado de redirect
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) showApp(result.user);
+  }).catch(() => {});
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -1225,12 +1232,9 @@
 
   async function loginWithGoogle() {
     try {
-      const result = await window._signInWithPopup(window._auth, window._provider);
-      showApp(result.user);
+      await window._signInWithRedirect(window._auth, window._provider);
     } catch(e) {
-      if (e.code !== 'auth/popup-closed-by-user') {
-        showLoginError('loginError', 'Error al iniciar con Google. Intentá de nuevo.');
-      }
+      showLoginError('loginError', 'Error al iniciar con Google. Intentá de nuevo.');
     }
   }
   async function loginWithEmail() {
