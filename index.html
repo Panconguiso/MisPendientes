@@ -1208,11 +1208,6 @@
   window._deleteDoc = deleteDoc;
   window._writeBatch = writeBatch;
 
-  // Capturar resultado de redirect
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) showApp(result.user);
-  }).catch(() => {});
-
   onAuthStateChanged(auth, (user) => {
     if (user) {
       showApp(user);
