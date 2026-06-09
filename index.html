@@ -293,6 +293,10 @@
     .pl-add-btn:hover { opacity: 0.85; transform: translateY(-1px); }
     .pl-item-remove:hover { color: var(--danger); transform: scale(1.2); }
     .btn-modal-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(232,224,208,0.12); }
+    .btn-star { background:none; border:none; cursor:pointer; font-size:1rem; padding:2px 4px; opacity:0.3; transition:all 0.18s; }
+    .btn-star:hover { opacity:1; transform:scale(1.2); }
+    .btn-star.starred { opacity:1; filter:drop-shadow(0 0 4px rgba(232,200,80,0.5)); }
+    .task-row.is-top { border-color:rgba(232,224,208,0.25); box-shadow:0 2px 14px rgba(232,224,208,0.07); }
     .btn-modal-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
 
     /* ===== MAIN APP ===== */
@@ -792,7 +796,7 @@
     </div>
 
     <div style="text-align:center;padding:14px 0 4px;font-size:0.65rem;color:var(--text-muted);font-family:'DM Mono',monospace">
-      Mis Pendientes v9 · Firebase Auth
+      Mis Pendientes v14 · Firebase Auth
     </div>
   </div>
 
@@ -890,8 +894,8 @@
       <button class="sidebar-btn" id="sb-today" onclick="setView('today',this);syncSidebar(this)">
         <span class="sidebar-icon">📅</span> Hoy
       </button>
-      <button class="sidebar-btn" id="sb-playlists" onclick="setView('playlists',this);syncSidebar(this)">
-        <span class="sidebar-icon">🗂️</span> Mis Listas
+      <button class="sidebar-btn" id="sb-favorites" onclick="setView('favorites',this);syncSidebar(this)">
+        <span class="sidebar-icon">⭐</span> Favoritos
       </button>
 
       <div class="sidebar-divider"></div>
@@ -1022,7 +1026,7 @@
       <button class="tab-btn" onclick="setView('completed',this)">Completadas</button>
       <button class="tab-btn" onclick="setView('overdue',this)">Vencidas</button>
       <button class="tab-btn" onclick="setView('today',this)">Hoy</button>
-      <button class="tab-btn" onclick="setView('playlists',this)">🗂️ Mis Listas</button>
+      <button class="tab-btn" onclick="setView('favorites',this)">⭐ Favoritos</button>
     </div>
 
     <div class="search-section">
@@ -1157,7 +1161,7 @@
         Aplicar cambios
       </button>
     </div>
-    <p style="font-size:0.68rem;color:var(--text-muted);margin-top:14px;text-align:center;font-family:'DM Mono',monospace">Mis Pendientes v10 · Firebase Auth</p>
+    <p style="font-size:0.68rem;color:var(--text-muted);margin-top:14px;text-align:center;font-family:'DM Mono',monospace">Mis Pendientes v14 · Firebase Auth</p>
     <p style="font-size:0.62rem;color:var(--text-muted);margin-top:6px;text-align:center;font-family:'DM Mono',monospace">🎵 "Lofi Chill" · mondamusic · Pixabay License</p>
   </div>
 </div>
@@ -1166,6 +1170,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyA9USoinJqDuJR4bczQFG6q8FMDxQLIT-I",
@@ -1189,6 +1194,16 @@
   window._resetPassword = sendPasswordResetEmail;
   window._signOut = signOut;
   window._updateProfile = updateProfile;
+
+  // Firestore
+  const db = getFirestore(app);
+  window._db = db;
+  window._collection = collection;
+  window._doc = doc;
+  window._setDoc = setDoc;
+  window._getDocs = getDocs;
+  window._deleteDoc = deleteDoc;
+  window._writeBatch = writeBatch;
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -1595,9 +1610,18 @@
       const now=new Date(); now.setHours(0,0,0,0);
       f=f.filter(t=>{if(!t.date||t.done)return false;const d=new Date(t.date);d.setHours(0,0,0,0);return d<now;});
     }
+    if (currentView==='favorites') f=f.filter(t=>t.favorite);
     if (currentPriority!=='all') f=f.filter(t=>t.priority===currentPriority);
     if (searchQuery) f=f.filter(t=>t.title.toLowerCase().includes(searchQuery)||(t.description||'').toLowerCase().includes(searchQuery)||(t.tags||[]).some(g=>g.toLowerCase().includes(searchQuery)));
     return f.sort((a,b)=>{
+      const rank=t=>{
+        if(t.favorite&&t.priority==='high')return 0;
+        if(t.favorite)return 1;
+        if(t.priority==='high')return 2;
+        return 3;
+      };
+      const ra=rank(a),rb=rank(b);
+      if(ra!==rb)return ra-rb;
       const p={high:0,medium:1,low:2};
       if(p[a.priority]!==p[b.priority])return p[a.priority]-p[b.priority];
       if(a.date&&b.date)return new Date(a.date)-new Date(b.date);
@@ -1608,7 +1632,7 @@
 
   function buildTaskHTML(t) {
     return `
-      <div class="task-row${t.done?' done':''}" id="task-${t.id}">
+      <div class="task-row${t.done?' done':''}${t.favorite&&t.priority==='high'?' is-top':''}" id="task-${t.id}">
         <div class="checkbox${t.done?' checked':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
         <div class="task-content">
           <div class="task-header">
@@ -1628,6 +1652,7 @@
             </div>`).join('')}</div>`:''}
         </div>
         <div class="task-actions">
+          <button class="btn-star${t.favorite?' starred':''}" onclick="toggleFavorite(${t.id})">${t.favorite?'⭐':'☆'}</button>
           <button class="btn-icon" onclick="editTask(${t.id})">✏️</button>
           <button class="btn-icon" onclick="deleteTask(${t.id})">🗑️</button>
         </div>
@@ -1642,7 +1667,15 @@
     if (list) list.innerHTML = html;
     const listD = document.getElementById('taskListDesktop');
     if (listD) listD.innerHTML = html;
-    if (currentView === 'playlists') renderPlaylists();
+    if (currentView === 'favorites' && !f.length) {
+      const msg = '<div class="empty">No tenés favoritos aún. Tocá ☆ en cualquier tarea. 🌿</div>';
+      if (list) list.innerHTML = msg;
+      if (listD) listD.innerHTML = msg;
+    }
+  }
+  function toggleFavorite(id) {
+    tasks = tasks.map(t => t.id===id ? {...t, favorite:!t.favorite} : t);
+    saveTasks(); renderTasks();
   }
 
   function getDateClass(d,done){
@@ -1753,7 +1786,7 @@
   function syncSidebar(btn) {
     document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    const titles = {all:'Todas las tareas',pending:'Pendientes',completed:'Completadas',overdue:'Vencidas',today:'Tareas de hoy',playlists:'Mis Listas'};
+    const titles = {all:'Todas las tareas',pending:'Pendientes',completed:'Completadas',overdue:'Vencidas',today:'Tareas de hoy',playlists:'Mis Listas',favorites:'Favoritos'};
     const el = document.getElementById('desktopViewTitle');
     if (el) el.textContent = titles[currentView] || 'Tareas';
     const plDesktop = document.getElementById('playlistSectionDesktop');
