@@ -1208,6 +1208,15 @@
   window._deleteDoc = deleteDoc;
   window._writeBatch = writeBatch;
 
+  // Capturar redirect result primero, luego onAuthStateChanged
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+      showApp(result.user);
+    }
+  }).catch((e) => {
+    console.error('Redirect error:', e);
+  });
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       showApp(user);
@@ -1294,7 +1303,10 @@
     init();
   }
 
+  let appShown = false;
   function showApp(user) {
+    if (appShown) return;
+    appShown = true;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     const userBar = document.getElementById('userBar');
@@ -1321,10 +1333,7 @@
     init();
     // Firestore: migrar y cargar tareas si hay usuario logueado
     if (user && user.uid) {
-      console.log('Usuario logueado UID:', user.uid);
       migrateLocalToFirestore(user.uid).then(() => loadTasksFromFirestore(user.uid));
-    } else {
-      console.log('showApp: sin usuario o sin uid', user);
     }
   }
 
@@ -1491,7 +1500,6 @@
 
   async function migrateLocalToFirestore(userId) {
     const migrated = localStorage.getItem('mis-pendientes-migrated-' + userId);
-    console.log('Migración - ya migrado?', migrated);
     if (migrated) return;
     const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     if (!local.length) return;
