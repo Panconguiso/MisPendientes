@@ -1331,9 +1331,9 @@
     if (psEmail) psEmail.textContent = user.email || '';
     updateSidebarUser(user);
     init();
-    // Firestore: migrar y cargar tareas si hay usuario logueado
+    // Firestore: cargar tareas del usuario logueado
     if (user && user.uid) {
-      migrateLocalToFirestore(user.uid).then(() => loadTasksFromFirestore(user.uid));
+      loadTasksFromFirestore(user.uid);
     }
   }
 
