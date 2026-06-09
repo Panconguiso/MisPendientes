@@ -1208,19 +1208,26 @@
   window._deleteDoc = deleteDoc;
   window._writeBatch = writeBatch;
 
-  // Capturar redirect result primero, luego onAuthStateChanged
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) {
-      showApp(result.user);
+  let appLoaded = false;
+
+  function tryShowApp(user) {
+    if (appLoaded) return;
+    if (user) {
+      appLoaded = true;
+      showApp(user);
     }
+  }
+
+  getRedirectResult(auth).then((result) => {
+    console.log('Redirect result:', result);
+    if (result && result.user) tryShowApp(result.user);
   }).catch((e) => {
     console.error('Redirect error:', e);
   });
 
   onAuthStateChanged(auth, (user) => {
-    if (user) {
-      showApp(user);
-    }
+    console.log('AuthStateChanged:', user ? user.email : 'null');
+    tryShowApp(user);
   });
 </script>
 
@@ -1303,10 +1310,7 @@
     init();
   }
 
-  let appShown = false;
   function showApp(user) {
-    if (appShown) return;
-    appShown = true;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     const userBar = document.getElementById('userBar');
