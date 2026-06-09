@@ -1321,7 +1321,10 @@
     init();
     // Firestore: migrar y cargar tareas si hay usuario logueado
     if (user && user.uid) {
+      console.log('Usuario logueado UID:', user.uid);
       migrateLocalToFirestore(user.uid).then(() => loadTasksFromFirestore(user.uid));
+    } else {
+      console.log('showApp: sin usuario o sin uid', user);
     }
   }
 
@@ -1488,6 +1491,7 @@
 
   async function migrateLocalToFirestore(userId) {
     const migrated = localStorage.getItem('mis-pendientes-migrated-' + userId);
+    console.log('Migración - ya migrado?', migrated);
     if (migrated) return;
     const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     if (!local.length) return;
